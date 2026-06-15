@@ -25,18 +25,7 @@ def next_card():
       - Recommendation
     parameters:
       - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            history:
-              type: array
-              items:
-                type: object
-    responses:
-      200:
-        description: Next card data
+      ...
     """
     try:
         data = NextCardSchema().load(request.get_json() or {})
@@ -44,7 +33,46 @@ def next_card():
         return jsonify(err.messages), 400
 
     history = data.get('history', [])
-    limit = data.get('limit', 15)
+    
+    # Count liked items in Phase 1
+    liked_count = sum(1 for sw in history if sw.get('liked'))
+    
+    # Careless answer check in Phase 1 (at 20 or 25 questions)
+    if len(history) == 20 or len(history) == 25:
+        if liked_count == 0 or liked_count == len(history):
+            return jsonify({'done': True})
+
+    # Determine limit and phase
+    if len(history) < 20:
+        limit = 20
+        phase1_len = 20
+    else:
+        liked_tags = []
+        disliked_tags = []
+        for sw in history[:20]:
+            card = ml_service.CARD_MAP.get(sw['id'])
+            if card:
+                if sw.get('liked'):
+                    liked_tags.extend(card.get('tags', []))
+                else:
+                    disliked_tags.extend(card.get('tags', []))
+        
+        current_recs = ml_service.get_rekomendasi(liked_tags, disliked_tags=disliked_tags, top_n=3, history=history[:20])
+        max_score = max([h['skor'] for h in current_recs]) if current_recs else 0
+        
+        if max_score < 60:
+            if len(history) < 25:
+                limit = 25
+            else:
+                limit = 35
+            phase1_len = 25
+        else:
+            limit = 30
+            phase1_len = 20
+
+    if len(history) >= limit:
+        return jsonify({'done': True})
+
     try:
         card = ml_service.build_next_card(history, limit=limit)
     except Exception as e:
@@ -54,13 +82,28 @@ def next_card():
     if not card:
         return jsonify({'done': True})
 
-    return jsonify({
+    response_data = {
         'done':     False,
         'card':     {'id': card['id'], 'text': card['text'], 'tags': card.get('tags', [])},
         'progress': round(min(len(history) / limit, 1.0), 2),
         'count':    len(history) + 1,
         'total':    limit,
-    })
+    }
+
+    if len(history) == phase1_len:
+        top_rumpun_key = ml_service._get_top_rumpun(history)
+        rumpun_display = ml_service.RUMPUN_DISPLAY_NAMES.get(top_rumpun_key, "Teknologi & Sains (STEM)")
+        response_data['phase_transition'] = True
+        response_data['top_rumpun'] = rumpun_display
+        
+        rumpun_id = top_rumpun_key.lower() if top_rumpun_key not in ['SOSIAL_HUMANIORA', 'PERTANIAN_ALAM', 'SENI_KREATIF'] else {
+            'SOSIAL_HUMANIORA': 'sosial',
+            'PERTANIAN_ALAM': 'lingkungan',
+            'SENI_KREATIF': 'kreatif'
+        }.get(top_rumpun_key, 'stem')
+        response_data['rumpun_id'] = rumpun_id
+
+    return jsonify(response_data)
 
 @api_bp.route('/recommend', methods=['POST'])
 @limiter.limit("30 per hour")
@@ -70,26 +113,7 @@ def recommend():
     ---
     tags:
       - Recommendation
-    parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            nama:
-              type: string
-            liked_tags:
-              type: array
-              items:
-                type: string
-            history:
-              type: array
-              items:
-                type: object
-    responses:
-      200:
-        description: Top 3 jurusan
+    ...
     """
     try:
         data = RecommendSchema().load(request.get_json() or {})
@@ -110,10 +134,13 @@ def recommend():
                 else:
                     disliked_tags.extend(card.get('tags', []))
 
-    # 1. Deteksi jawaban ekstrem jika ada history
+    # 1. Deteksi jawaban ekstrem di Fase 1
     if len(history) > 0:
-        all_liked = all(sw.get('liked') for sw in history)
-        all_disliked = all(not sw.get('liked') for sw in history)
+        phase1_len = 20 if len(history) == 30 else (25 if len(history) == 35 else len(history))
+        phase1_history = history[:phase1_len]
+        
+        all_liked = all(sw.get('liked') for sw in phase1_history)
+        all_disliked = all(not sw.get('liked') for sw in phase1_history)
         if all_liked:
             return jsonify({
                 'nama': nama,
@@ -134,17 +161,6 @@ def recommend():
     except Exception as e:
         logger.error(f"Error in recommend: {e}")
         return jsonify({'error': 'Internal server error'}), 500
-
-    # 2. Deteksi situasi 50-50 / tingkat keyakinan rendah pada tes pertama (len == 15)
-    max_score = max([h['skor'] for h in hasil]) if hasil else 0
-    if len(history) == 15 and max_score < 60:
-        return jsonify({
-            'nama': nama,
-            'status': 'extend',
-            'new_total': 20,
-            'hasil': [],
-            'session_id': str(uuid.uuid4())
-        })
 
     sid = str(uuid.uuid4())
     session['last'] = {
@@ -222,20 +238,7 @@ def feedback():
     ---
     tags:
       - Feedback
-    parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            rating:
-              type: integer
-            komentar:
-              type: string
-    responses:
-      200:
-        description: Feedback tersimpan
+    ...
     """
     try:
         data = FeedbackSchema().load(request.get_json() or {})
@@ -244,6 +247,8 @@ def feedback():
 
     rating = data.get('rating')
     komentar = data.get('komentar', '')
+    web_rating = data.get('web_rating')
+    web_komentar = data.get('web_komentar', '')
 
     last = session.get('last', {})
     hasil = last.get('hasil', [{}, {}, {}])
@@ -258,6 +263,8 @@ def feedback():
             hasil_3    = hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
             rating     = rating,
             komentar   = komentar,
+            web_rating = web_rating,
+            web_komentar = web_komentar,
         )
         db.session.add(record)
         db.session.commit()
@@ -282,9 +289,14 @@ def stats():
     try:
         total = FeedbackSession.query.count()
         rata_rating = 0
+        rata_rating_web = 0
         if total > 0:
-            ratings     = [r.rating for r in FeedbackSession.query.all()]
-            rata_rating = round(sum(ratings) / len(ratings), 2)
+            ratings     = [r.rating for r in FeedbackSession.query.all() if r.rating is not None]
+            if ratings:
+                rata_rating = round(sum(ratings) / len(ratings), 2)
+            web_ratings = [r.web_rating for r in FeedbackSession.query.all() if r.web_rating is not None]
+            if web_ratings:
+                rata_rating_web = round(sum(web_ratings) / len(web_ratings), 2)
             
         detail = [r.to_dict() for r in FeedbackSession.query.order_by(
                        FeedbackSession.timestamp.desc()).limit(10).all()]
@@ -297,6 +309,7 @@ def stats():
         return jsonify({
             'total': total, 
             'rata_rating': rata_rating, 
+            'rata_rating_web': rata_rating_web,
             'detail': detail,
             'item_feedback': {
                 'total_likes': item_likes,

@@ -4,9 +4,23 @@ import React, { useEffect, useState } from "react";
 import { ArrowLeft, Loader2, ThumbsUp, ThumbsDown, BarChart2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+interface FeedbackDetail {
+  id: number;
+  nama: string;
+  liked_tags: string;
+  hasil: string[];
+  rating: number;
+  komentar: string;
+  web_rating: number;
+  web_komentar: string;
+  timestamp: string | null;
+}
+
 interface StatsData {
   total: number;
   rata_rating: number;
+  rata_rating_web?: number;
+  detail?: FeedbackDetail[];
   item_feedback?: {
     total_likes: number;
     total_dislikes: number;
@@ -61,8 +75,12 @@ export default function StatsPage() {
               <div style={{ fontSize: "2rem", fontWeight: 900, color: "var(--blue)" }}>{data.total}</div>
             </div>
             <div style={{ background: "white", padding: 20, borderRadius: 16, border: "2px solid #E2E8F0", boxShadow: "var(--shadow)" }}>
-              <div style={{ color: "var(--muted)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", marginBottom: 8 }}>Rata-rata Rating</div>
+              <div style={{ color: "var(--muted)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", marginBottom: 8 }}>Rating Rekomendasi</div>
               <div style={{ fontSize: "2rem", fontWeight: 900, color: "var(--yellow2)" }}>{data.rata_rating} ⭐</div>
+            </div>
+            <div style={{ background: "white", padding: 20, borderRadius: 16, border: "2px solid #E2E8F0", boxShadow: "var(--shadow)" }}>
+              <div style={{ color: "var(--muted)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", marginBottom: 8 }}>Rating Website</div>
+              <div style={{ fontSize: "2rem", fontWeight: 900, color: "var(--yellow2)" }}>{data.rata_rating_web ?? 0} ⭐</div>
             </div>
           </div>
 
@@ -95,6 +113,59 @@ export default function StatsPage() {
               </div>
             </div>
           </div>
+
+          {data.detail && data.detail.length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <h2 style={{ fontFamily: "var(--font-nunito)", fontSize: "1.4rem", fontWeight: 800, color: "var(--blue)", marginBottom: 16 }}>
+                Feedback Terbaru
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {data.detail.map((item) => (
+                  <div key={item.id} style={{ background: "white", padding: 20, borderRadius: 16, border: "2px solid #E2E8F0", boxShadow: "var(--shadow)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                      <span style={{ fontWeight: 800, color: "var(--navy)" }}>{item.nama}</span>
+                      <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                        {item.timestamp ? new Date(item.timestamp).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
+                      </span>
+                    </div>
+                    
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, background: "#F8FAFC", padding: 12, borderRadius: 12 }}>
+                      <div>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>Akurasi Rekomendasi Jurusan</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.rating}</span>
+                          <span style={{ color: "var(--yellow2)" }}>{"⭐".repeat(item.rating)}</span>
+                        </div>
+                        {item.komentar ? (
+                          <p style={{ fontSize: "0.8rem", color: "var(--text)", margin: 0, fontStyle: "italic" }}>&ldquo;{item.komentar}&rdquo;</p>
+                        ) : (
+                          <span style={{ fontSize: "0.78rem", color: "var(--muted)", fontStyle: "italic" }}>Tidak ada komentar</span>
+                        )}
+                        {item.hasil && item.hasil.length > 0 && (
+                          <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 6 }}>
+                            <strong>Rekomendasi:</strong> {item.hasil.filter(Boolean).join(", ")}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div style={{ borderLeft: "1px dashed #E2E8F0", paddingLeft: 16 }}>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>Penggunaan Website</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.web_rating}</span>
+                          <span style={{ color: "var(--yellow2)" }}>{"⭐".repeat(item.web_rating)}</span>
+                        </div>
+                        {item.web_komentar ? (
+                          <p style={{ fontSize: "0.8rem", color: "var(--text)", margin: 0, fontStyle: "italic" }}>&ldquo;{item.web_komentar}&rdquo;</p>
+                        ) : (
+                          <span style={{ fontSize: "0.78rem", color: "var(--muted)", fontStyle: "italic" }}>Tidak ada komentar</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       ) : (

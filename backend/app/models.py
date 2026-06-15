@@ -15,6 +15,8 @@ class FeedbackSession(db.Model):
     hasil_3    = db.Column(db.String(200))
     rating     = db.Column(db.Integer)
     komentar   = db.Column(db.Text)
+    web_rating = db.Column(db.Integer)
+    web_komentar = db.Column(db.Text)
     timestamp  = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -25,6 +27,8 @@ class FeedbackSession(db.Model):
             'hasil':      [self.hasil_1, self.hasil_2, self.hasil_3],
             'rating':     self.rating,
             'komentar':   self.komentar,
+            'web_rating':   self.web_rating,
+            'web_komentar': self.web_komentar,
             'timestamp':  self.timestamp.isoformat() if self.timestamp else None
         }
 

@@ -3,292 +3,1342 @@
     {
       "id": "q1",
       "text": "Kamu lebih suka menghabiskan waktu dengan membuat atau merancang sesuatu",
-      "tags": ["desain", "kreativitas", "seni", "teknik", "arsitektur"],
-      "follow_up_like": ["q_kreatif1", "q_kreatif2", "q_kreatif3"],
-      "follow_up_skip": ["q_analitik1", "q_analitik2"]
+      "tags": [
+        "desain",
+        "kreativitas",
+        "seni",
+        "teknik",
+        "arsitektur"
+      ],
+      "follow_up_like": [
+        "q_kreatif1",
+        "q_kreatif2",
+        "q_kreatif3"
+      ],
+      "follow_up_skip": [
+        "q_analitik1",
+        "q_analitik2"
+      ]
     },
     {
       "id": "q2",
       "text": "Kamu lebih tertarik memahami kenapa sesuatu terjadi daripada bagaimana cara membuatnya",
-      "tags": ["riset", "analisis", "sains", "penelitian", "berpikir kritis"],
-      "follow_up_like": ["q_sains1", "q_sains2", "q_sains3"],
-      "follow_up_skip": ["q_praktis1", "q_praktis2"]
+      "tags": [
+        "riset",
+        "analisis",
+        "sains",
+        "penelitian",
+        "berpikir kritis"
+      ],
+      "follow_up_like": [
+        "q_sains1",
+        "q_sains2",
+        "q_sains3"
+      ],
+      "follow_up_skip": [
+        "q_praktis1",
+        "q_praktis2"
+      ]
     },
     {
       "id": "q3",
       "text": "Kamu merasa nyaman berbicara di depan banyak orang atau memimpin diskusi",
-      "tags": ["komunikasi", "kepemimpinan", "presentasi", "sosial", "public speaking"],
-      "follow_up_like": ["q_sosial1", "q_sosial2", "q_sosial3"],
-      "follow_up_skip": ["q_mandiri1", "q_mandiri2"]
+      "tags": [
+        "komunikasi",
+        "kepemimpinan",
+        "presentasi",
+        "sosial",
+        "public speaking"
+      ],
+      "follow_up_like": [
+        "q_sosial1",
+        "q_sosial2",
+        "q_sosial3"
+      ],
+      "follow_up_skip": [
+        "q_mandiri1",
+        "q_mandiri2"
+      ]
     },
     {
       "id": "q4",
       "text": "Kamu lebih suka bekerja dengan data, angka, atau pola-pola yang bisa dianalisis",
-      "tags": ["analisis data", "statistik", "matematika", "logika", "komputer"],
-      "follow_up_like": ["q_data1", "q_data2", "q_data3"],
-      "follow_up_skip": ["q_manusia1", "q_manusia2"]
+      "tags": [
+        "analisis data",
+        "statistik",
+        "matematika",
+        "logika",
+        "komputer"
+      ],
+      "follow_up_like": [
+        "q_data1",
+        "q_data2",
+        "q_data3"
+      ],
+      "follow_up_skip": [
+        "q_manusia1",
+        "q_manusia2"
+      ]
     },
     {
       "id": "q5",
       "text": "Kamu tertarik dengan cara tubuh manusia bekerja dan dunia kesehatan",
-      "tags": ["kesehatan", "biologi", "medis", "farmasi", "keperawatan"],
-      "follow_up_like": ["q_health1", "q_health2", "q_health3"],
-      "follow_up_skip": ["q_nonhealth1", "q_nonhealth2"]
+      "tags": [
+        "kesehatan",
+        "biologi",
+        "medis",
+        "farmasi",
+        "keperawatan"
+      ],
+      "follow_up_like": [
+        "q_health1",
+        "q_health2",
+        "q_health3"
+      ],
+      "follow_up_skip": [
+        "q_nonhealth1",
+        "q_nonhealth2"
+      ]
     },
     {
       "id": "q6",
       "text": "Kamu suka mengikuti berita, isu sosial, atau perkembangan politik",
-      "tags": ["sosial", "politik", "hukum", "kebijakan", "pemerintahan"],
-      "follow_up_like": ["q_sospol1", "q_sospol2"],
-      "follow_up_skip": ["q_teknis1", "q_teknis2"]
+      "tags": [
+        "sosial",
+        "politik",
+        "hukum",
+        "kebijakan",
+        "pemerintahan"
+      ],
+      "follow_up_like": [
+        "q_sospol1",
+        "q_sospol2"
+      ],
+      "follow_up_skip": [
+        "q_teknis1",
+        "q_teknis2"
+      ]
     },
     {
       "id": "q7",
       "text": "Kamu lebih suka pekerjaan yang hasilnya bisa langsung kamu lihat secara fisik",
-      "tags": ["teknik", "konstruksi", "manufaktur", "praktik", "lapangan"],
-      "follow_up_like": ["q_fisik1", "q_fisik2", "q_fisik3"],
-      "follow_up_skip": ["q_konsep1", "q_konsep2"]
+      "tags": [
+        "teknik",
+        "konstruksi",
+        "manufaktur",
+        "praktik",
+        "lapangan"
+      ],
+      "follow_up_like": [
+        "q_fisik1",
+        "q_fisik2",
+        "q_fisik3"
+      ],
+      "follow_up_skip": [
+        "q_konsep1",
+        "q_konsep2"
+      ]
     },
     {
       "id": "q8",
       "text": "Kamu senang ketika bisa membantu orang lain memahami sesuatu atau menyelesaikan masalah mereka",
-      "tags": ["pendidikan", "psikologi", "konseling", "sosial", "pelayanan"],
-      "follow_up_like": ["q_help1", "q_help2", "q_help3"],
-      "follow_up_skip": ["q_solo1", "q_solo2"]
+      "tags": [
+        "pendidikan",
+        "psikologi",
+        "konseling",
+        "sosial",
+        "pelayanan"
+      ],
+      "follow_up_like": [
+        "q_help1",
+        "q_help2",
+        "q_help3"
+      ],
+      "follow_up_skip": [
+        "q_solo1",
+        "q_solo2"
+      ]
     },
     {
-      "id": "q_kreatif1",
-      "text": "Kamu lebih tertarik pada desain visual seperti poster, logo, atau tampilan website",
-      "tags": ["desain grafis", "UI/UX", "visual", "digital", "ilustrasi"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det1",
+      "text": "Kamu tertarik mempelajari pengalokasian sumber daya yang terbatas serta analisis masalah hukum dari sisi ekonomi.",
+      "tags": [
+        "ekonomi",
+        "matematika",
+        "analisis",
+        "ilmu",
+        "kritis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_kreatif2",
-      "text": "Kamu lebih suka menciptakan karya tiga dimensi seperti bangunan, produk, atau patung",
-      "tags": ["arsitektur", "desain produk", "teknik sipil", "seni rupa", "3D"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det2",
+      "text": "Kamu tertarik memimpin organisasi, merencanakan strategi bisnis, serta mengelola pemasaran dan ketenagakerjaan.",
+      "tags": [
+        "manajemen",
+        "manajerial",
+        "komunikasi",
+        "keuangan",
+        "pemimpin"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_kreatif3",
-      "text": "Kamu tertarik dengan dunia pertunjukan seperti musik, film, atau teater",
-      "tags": ["seni musik", "film", "broadcasting", "seni pertunjukan", "kreatif"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det3",
+      "text": "Kamu suka mempelajari transaksi keuangan, asuransi, pasar modal, dan pengelolaan perputaran dana lembaga keuangan.",
+      "tags": [
+        "perbankan",
+        "keuangan",
+        "pasar",
+        "modal",
+        "asuransi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_analitik1",
-      "text": "Kamu menikmati memecahkan teka-teki logika atau soal-soal yang butuh pemikiran mendalam",
-      "tags": ["logika", "matematika", "algoritma", "pemrograman", "sains"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det4",
+      "text": "Kamu senang meneliti pencatatan keuangan, menyusun laporan anggaran, serta menganalisis laporan akuntansi.",
+      "tags": [
+        "akuntansi",
+        "keuangan",
+        "anggaran",
+        "laporan",
+        "hitung"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_analitik2",
-      "text": "Kamu lebih suka mengamati pola dan tren dalam sekumpulan informasi",
-      "tags": ["statistik", "analisis data", "riset", "ekonomi", "bisnis"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det5",
+      "text": "Kamu tertarik merancang bisnis berbasis internet dengan menggabungkan manajemen, e-commerce, dan teknologi digital.",
+      "tags": [
+        "bisnis",
+        "digital",
+        "manajemen",
+        "kemampuan",
+        "komunikasi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sains1",
-      "text": "Kamu tertarik dengan eksperimen di laboratorium dan pengujian hipotesis",
-      "tags": ["kimia", "biologi", "fisika", "laboratorium", "penelitian"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det6",
+      "text": "Kamu tertarik mempelajari bagaimana melakukan pemasaran produk, pembukuan keuangan, serta wirausaha mandiri.",
+      "tags": [
+        "bisnis",
+        "pemasaran",
+        "keuangan",
+        "wirausaha",
+        "manajerial"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sains2",
-      "text": "Kamu ingin memahami bagaimana alam semesta, bumi, atau ekosistem bekerja",
-      "tags": ["geografi", "geologi", "lingkungan", "ekologi", "kehutanan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det7",
+      "text": "Kamu tertarik menerapkan ilmu matematika, probabilitas, dan statistik untuk pengelolaan risiko keuangan.",
+      "tags": [
+        "aktuaria",
+        "matematika",
+        "statistik",
+        "risiko",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sains3",
-      "text": "Kamu tertarik mengembangkan teknologi baru atau sistem cerdas",
-      "tags": ["teknologi", "komputer", "AI", "informatika", "robotika"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det8",
+      "text": "Kamu ingin mempelajari transaksi perdagangan lintas negara, bahasa asing, serta hubungan bisnis global.",
+      "tags": [
+        "bisnis",
+        "internasional",
+        "bahasa",
+        "asing",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_praktis1",
-      "text": "Kamu lebih suka langsung action dan belajar dari pengalaman nyata",
-      "tags": ["vokasi", "praktik", "teknik", "wirausaha", "lapangan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det9",
+      "text": "Kamu berminat mendalami kebijakan perpajakan negara, tata cara laporan pajak, serta pengelolaan keuangan fiskal.",
+      "tags": [
+        "perpajakan",
+        "pajak",
+        "keuangan",
+        "laporan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_praktis2",
-      "text": "Kamu termotivasi ketika melihat hasil kerja kerasmu berdampak nyata bagi orang lain",
-      "tags": ["sosial", "pendidikan", "kesehatan", "komunitas", "pelayanan publik"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det10",
+      "text": "Kamu tertarik pada tata kelola ekonomi makro dan mikro yang berlandaskan prinsip syariah Islam.",
+      "tags": [
+        "ekonomi",
+        "syariah",
+        "islam",
+        "perdagangan",
+        "keuangan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sosial1",
-      "text": "Kamu tertarik memahami mengapa orang berperilaku dan berpikir dengan cara tertentu",
-      "tags": ["psikologi", "sosiologi", "antropologi", "komunikasi", "perilaku"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det11",
+      "text": "Kamu berminat mengelola investasi perusahaan dan pendanaan jangka panjang sesuai dengan prinsip syariah.",
+      "tags": [
+        "manajemen",
+        "keuangan",
+        "syariah",
+        "investasi",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sosial2",
-      "text": "Kamu suka berada di lingkungan yang dinamis dan penuh interaksi setiap harinya",
-      "tags": ["komunikasi", "hubungan masyarakat", "event", "media", "pariwisata"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det12",
+      "text": "Kamu tertarik merancang strategi periklanan kreatif melalui media komunikasi visual, DKV, atau animasi.",
+      "tags": [
+        "periklanan",
+        "advertising",
+        "komunikasi",
+        "visual",
+        "kreatif"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sosial3",
-      "text": "Kamu ingin berkontribusi pada perubahan sosial melalui kebijakan atau advokasi",
-      "tags": ["hukum", "politik", "kebijakan publik", "administrasi negara", "sosial"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det13",
+      "text": "Kamu suka membangun sistem informasi database keuangan menggunakan perangkat lunak akuntansi komputer.",
+      "tags": [
+        "akuntansi",
+        "komputer",
+        "software",
+        "logika",
+        "algoritma"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_mandiri1",
-      "text": "Kamu lebih produktif saat bekerja sendiri dengan fokus penuh tanpa gangguan",
-      "tags": ["riset", "pemrograman", "akuntansi", "arsip", "analisis"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det14",
+      "text": "Kamu tertarik mempelajari aspek kepatuhan pajak pribadi, wajib pajak badan, serta perhitungan pajak dan akuntansi.",
+      "tags": [
+        "perpajakan",
+        "pajak",
+        "kemampuan",
+        "keuangan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_mandiri2",
-      "text": "Kamu menikmati pekerjaan yang butuh ketelitian dan konsistensi tinggi",
-      "tags": ["akuntansi", "farmasi", "teknik", "laboratorium", "statistik"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det15",
+      "text": "Kamu berminat mendalami perencanaan pembangunan daerah, penanggulangan kemiskinan, dan analisis fiskal negara.",
+      "tags": [
+        "ekonomi",
+        "pembangunan",
+        "analisis",
+        "logika",
+        "matematika"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_data1",
-      "text": "Kamu tertarik membangun program atau aplikasi yang bisa menyelesaikan masalah",
-      "tags": ["pemrograman", "software engineering", "informatika", "komputer", "algoritma"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det16",
+      "text": "Kamu senang merencanakan anggaran belanja perusahaan, menganalisis laporan keuangan, dan pengelolaan investasi.",
+      "tags": [
+        "manajemen",
+        "keuangan",
+        "kemampuan",
+        "laporan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_data2",
-      "text": "Kamu suka mencari wawasan tersembunyi dari sekumpulan data besar",
-      "tags": ["data science", "statistik", "machine learning", "analisis", "bisnis"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det17",
+      "text": "Kamu bertekad mengidentifikasi peluang bisnis baru, membuat ide inovatif, serta menjalankan usaha kreatif.",
+      "tags": [
+        "kewirausahaan",
+        "bisnis",
+        "ide",
+        "kreativitas",
+        "usaha"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_data3",
-      "text": "Kamu tertarik dengan keamanan sistem dan perlindungan informasi digital",
-      "tags": ["keamanan siber", "jaringan", "informatika", "sistem informasi", "teknologi"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det18",
+      "text": "Kamu suka merancang perangkat keras (hardware), integrasi sensor, serta perancangan teknik komputer.",
+      "tags": [
+        "komputer",
+        "hardware",
+        "software",
+        "teknik",
+        "sistem"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_manusia1",
-      "text": "Kamu lebih tertarik pada cerita, budaya, dan bagaimana manusia berkembang sepanjang sejarah",
-      "tags": ["sejarah", "sastra", "budaya", "antropologi", "filsafat"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det19",
+      "text": "Kamu tertarik belajar pemrograman, algoritma, rekayasa perangkat lunak, dan pengolahan data komputer.",
+      "tags": [
+        "informatika",
+        "pemrograman",
+        "program",
+        "teknik",
+        "logika"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_manusia2",
-      "text": "Kamu ingin bekerja langsung melayani atau memberdayakan masyarakat",
-      "tags": ["sosial", "kesehatan masyarakat", "pendidikan", "komunitas", "NGO"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det20",
+      "text": "Kamu tertarik membangun infrastruktur jaringan komputer, sistem keamanan server, dan manajemen teknologi informasi.",
+      "tags": [
+        "teknologi",
+        "informasi",
+        "kemampuan",
+        "komputer",
+        "sistem"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_health1",
-      "text": "Kamu ingin terlibat langsung dalam penanganan pasien dan diagnosis penyakit",
-      "tags": ["kedokteran", "keperawatan", "kesehatan", "klinis", "medis"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det21",
+      "text": "Kamu berminat mempelajari transmisi sinyal radio, sistem komunikasi nirkabel, serat optik, dan satelit.",
+      "tags": [
+        "telekomunikasi",
+        "komunikasi",
+        "teknik",
+        "jaringan",
+        "teknik"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_health2",
-      "text": "Kamu lebih tertarik pada penelitian obat-obatan dan zat kimia untuk kesehatan",
-      "tags": ["farmasi", "kimia", "biokimia", "riset medis", "laboratorium"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det22",
+      "text": "Kamu ingin mendalami metode pembuatan aplikasi komputer, software engineering, serta pengujian sistem.",
+      "tags": [
+        "rekayasa",
+        "perangkat",
+        "lunak",
+        "software",
+        "aplikasi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_health3",
-      "text": "Kamu tertarik pada pencegahan penyakit dan kesehatan masyarakat secara luas",
-      "tags": ["kesehatan masyarakat", "epidemiologi", "gizi", "sanitasi", "lingkungan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det23",
+      "text": "Kamu tertarik mengolah dan menganalisis data menggunakan metode statistika dan model pemrograman visualisasi data.",
+      "tags": [
+        "sains",
+        "data",
+        "statistika",
+        "pemrograman",
+        "visualisasi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_nonhealth1",
-      "text": "Kamu lebih tertarik pada dunia bisnis, pasar, dan pengelolaan organisasi",
-      "tags": ["manajemen", "bisnis", "ekonomi", "keuangan", "pemasaran"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det24",
+      "text": "Kamu ingin mendeteksi ancaman keamanan digital, keamanan jaringan komputer, dan mencegah serangan peretasan.",
+      "tags": [
+        "keamanan",
+        "cyber",
+        "security",
+        "jaringan",
+        "komputer"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_nonhealth2",
-      "text": "Kamu ingin bekerja di bidang yang berkaitan dengan alam dan lingkungan hidup",
-      "tags": ["pertanian", "kehutanan", "kelautan", "lingkungan", "peternakan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det25",
+      "text": "Kamu tertarik menjembatani kebutuhan bisnis perusahaan dengan perancangan software database.",
+      "tags": [
+        "sistem",
+        "informasi",
+        "bisnis",
+        "kemampuan",
+        "software"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sospol1",
-      "text": "Kamu tertarik memperjuangkan keadilan melalui jalur hukum atau advokasi",
-      "tags": ["hukum", "ilmu hukum", "advokat", "kebijakan", "HAM"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det26",
+      "text": "Kamu ingin mengelola operasional pusat data server, sistem basis data, dan jaringan komputer.",
+      "tags": [
+        "manajemen",
+        "informatika",
+        "kemampuan",
+        "analisis",
+        "sistem"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_sospol2",
-      "text": "Kamu ingin terlibat dalam pembuatan kebijakan publik atau pemerintahan",
-      "tags": ["administrasi negara", "ilmu politik", "pemerintahan", "birokrasi", "kedinasan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det27",
+      "text": "Kamu tertarik mengembangkan teknologi sistem robot, kecerdasan buatan, otomasi industri, dan kontrol mesin.",
+      "tags": [
+        "robotika",
+        "robot",
+        "teknologi",
+        "teknik",
+        "mesin"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_teknis1",
-      "text": "Kamu lebih tertarik memahami cara kerja mesin, sistem, atau infrastruktur",
-      "tags": ["teknik mesin", "teknik industri", "teknik elektro", "sistem", "infrastruktur"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det28",
+      "text": "Kamu tertarik mempelajari bentang lahan bumi, iklim, pemetaan, serta teknologi sistem informasi geografis (GIS).",
+      "tags": [
+        "geografi",
+        "pemetaan",
+        "iklim",
+        "lahan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_teknis2",
-      "text": "Kamu suka merancang sesuatu yang bisa digunakan banyak orang secara efisien",
-      "tags": ["teknik industri", "manajemen", "sistem informasi", "logistik", "operasional"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det29",
+      "text": "Kamu suka melakukan survei pemetaan permukaan bumi menggunakan satelit dan pengukuran geomatika.",
+      "tags": [
+        "geodesi",
+        "pemetaan",
+        "survei",
+        "tanah",
+        "geomatika"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_fisik1",
-      "text": "Kamu tertarik merancang dan membangun struktur seperti gedung, jalan, atau jembatan",
-      "tags": ["teknik sipil", "arsitektur", "konstruksi", "infrastruktur", "bangunan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det30",
+      "text": "Kamu tertarik meneliti batuan bumi, proses pembentukan geologi, serta mitigasi bencana alam.",
+      "tags": [
+        "geologi",
+        "bumi",
+        "teknik",
+        "bencana",
+        "observasi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_fisik2",
-      "text": "Kamu suka bekerja dengan mesin, elektronik, atau perangkat keras",
-      "tags": ["teknik mesin", "teknik elektro", "elektronika", "manufaktur", "robotika"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det31",
+      "text": "Kamu ingin mempelajari astrofisika, benda-benda langit, bintang, galaksi jauh, dan astrofisika teoretis.",
+      "tags": [
+        "astronomi",
+        "kemampuan",
+        "analisis",
+        "observasi",
+        "sistem"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_fisik3",
-      "text": "Kamu tertarik dengan dunia kuliner, perhotelan, atau pariwisata",
-      "tags": ["pariwisata", "perhotelan", "kuliner", "hospitality", "tata boga"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det32",
+      "text": "Kamu senang mempelajari pertanyaan besar tentang etika, pemikiran logis, humaniora, dan makna hidup.",
+      "tags": [
+        "filsafat",
+        "kemampuan",
+        "analisis",
+        "budaya"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_konsep1",
-      "text": "Kamu tertarik pada pertanyaan-pertanyaan besar tentang makna hidup dan etika",
-      "tags": ["filsafat", "teologi", "ilmu budaya", "humaniora", "sastra"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det33",
+      "text": "Kamu tertarik meneliti naskah kuno, sejarah peradaban masa lalu, dan warisan budaya suatu bangsa.",
+      "tags": [
+        "sejarah",
+        "kemampuan",
+        "analisis",
+        "budaya",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_konsep2",
-      "text": "Kamu lebih suka menghasilkan karya yang bisa dinikmati atau dirasakan orang lain",
-      "tags": ["seni", "musik", "sastra", "film", "desain komunikasi visual"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det34",
+      "text": "Kamu suka menganalisis karya sastra novel, linguistik tata bahasa Indonesia, serta penulisan kreatif.",
+      "tags": [
+        "sastra",
+        "indonesia",
+        "kemampuan",
+        "penulisan",
+        "kreatif"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_help1",
-      "text": "Kamu ingin menjadi pendidik atau mentor yang membimbing generasi muda",
-      "tags": ["pendidikan", "keguruan", "pengajaran", "bimbingan konseling", "PGSD"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det35",
+      "text": "Kamu berminat mempelajari benda purbakala, artefak kuno, sejarah fosil, dan situs sejarah peradaban.",
+      "tags": [
+        "arkeologi",
+        "sejarah",
+        "artefak",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_help2",
-      "text": "Kamu ingin membantu orang mengatasi masalah emosional atau mental mereka",
-      "tags": ["psikologi", "konseling", "kesehatan mental", "terapi", "sosial"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det36",
+      "text": "Kamu tertarik pada penulisan berita jurnalistik, hubungan masyarakat (PR), media, dan strategi komunikasi.",
+      "tags": [
+        "komunikasi",
+        "ilmu",
+        "media",
+        "kemampuan",
+        "kreatif"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_help3",
-      "text": "Kamu ingin bekerja di organisasi sosial atau lembaga kemanusiaan",
-      "tags": ["kesejahteraan sosial", "NGO", "komunitas", "sosial", "pemberdayaan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det37",
+      "text": "Kamu berminat mempelajari diplomasi antar negara, politik global, hukum internasional, dan perdagangan luar negeri.",
+      "tags": [
+        "hubungan",
+        "internasional",
+        "kemampuan",
+        "politik",
+        "hukum"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_solo1",
-      "text": "Kamu lebih suka pekerjaan yang hasilnya bisa terukur secara objektif",
-      "tags": ["akuntansi", "statistik", "teknik", "audit", "keuangan"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det38",
+      "text": "Kamu tertarik pada birokrasi pemerintahan, administrasi publik, serta tata kelola pelayanan masyarakat.",
+      "tags": [
+        "pemerintahan",
+        "ilmu",
+        "administrasi",
+        "kemampuan",
+        "publik"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     },
     {
-      "id": "q_solo2",
-      "text": "Kamu tertarik bekerja di bidang yang terus berkembang dan selalu ada hal baru untuk dipelajari",
-      "tags": ["teknologi", "riset", "sains", "inovasi", "penelitian"],
-      "follow_up_like": [], "follow_up_skip": []
+      "id": "q_det39",
+      "text": "Kamu tertarik menganalisis pemilu, dinamika partai politik, kebijakan pemerintahan, serta teori demokrasi.",
+      "tags": [
+        "politik",
+        "ilmu",
+        "kemampuan",
+        "analisis",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det40",
+      "text": "Kamu ingin membantu pemberdayaan masyarakat miskin, pelayanan sosial, dan penanggulangan masalah kemanusiaan.",
+      "tags": [
+        "kesejahteraan",
+        "sosial",
+        "kemampuan",
+        "pelayanan",
+        "masyarakat"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det41",
+      "text": "Kamu tertarik mempelajari kitab undang-undang, tata peradilan persidangan, hak asasi manusia, dan profesi hukum.",
+      "tags": [
+        "hukum",
+        "undang-undang",
+        "ilmu",
+        "hak",
+        "kemampuan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det42",
+      "text": "Kamu senang meneliti interaksi sosial, dinamika konflik kemasyarakatan, serta perubahan sosial budaya.",
+      "tags": [
+        "sosiologi",
+        "sosial",
+        "kemampuan",
+        "analisis",
+        "masyarakat"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det43",
+      "text": "Kamu tertarik menganalisis penyebab terjadinya kejahatan, sistem peradilan pidana, serta perilaku kriminal.",
+      "tags": [
+        "kriminologi",
+        "kejahatan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det44",
+      "text": "Kamu berminat mengendalikan kualitas sanitasi air, pembuangan limbah, dan mencegah polusi lingkungan.",
+      "tags": [
+        "kesehatan",
+        "lingkungan",
+        "kemampuan",
+        "analisis",
+        "sistem"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det45",
+      "text": "Kamu tertarik pada konsultasi nutrisi seimbang, pola makan sehat, dan program perbaikan gizi masyarakat.",
+      "tags": [
+        "gizi",
+        "nutrisi",
+        "diet",
+        "sehat",
+        "makanan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det46",
+      "text": "Kamu suka bekerja di laboratorium memeriksa sampel darah, mikrobiologi, dan penunjang diagnosis medis.",
+      "tags": [
+        "kesehatan",
+        "laboratorium",
+        "medis",
+        "analis",
+        "kemampuan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det47",
+      "text": "Kamu tertarik meneliti patologi penyakit pada level molekuler, genetika manusia, serta biomedis.",
+      "tags": [
+        "biomedis",
+        "ilmu",
+        "kemampuan",
+        "riset",
+        "kesehatan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det48",
+      "text": "Kamu tertarik meracik obat-obatan, reaksi zat kimia di tubuh, serta peresepan obat di apotek.",
+      "tags": [
+        "farmasi",
+        "obat",
+        "kimia",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det49",
+      "text": "Kamu bercita-cita melakukan diagnosis medis penyakit pasien, tindakan bedah klinis, dan pelayanan kesehatan.",
+      "tags": [
+        "dokter",
+        "medis",
+        "diagnosis",
+        "pendidikan",
+        "klinis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det50",
+      "text": "Kamu memiliki kepedulian tinggi mendampingi pasien rawat inap, memberikan perawatan harian, dan asuhan keperawatan.",
+      "tags": [
+        "keperawatan",
+        "perawat",
+        "rawat",
+        "ilmu",
+        "medis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det51",
+      "text": "Kamu tertarik pada perawatan kesehatan gigi dan mulut, ortodonti, serta tindakan bedah mulut.",
+      "tags": [
+        "gigi",
+        "mulut",
+        "kesehatan",
+        "pendidikan",
+        "dokter"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det52",
+      "text": "Kamu terpanggil untuk membantu ibu hamil, proses persalinan bayi, dan asuhan kebidanan pasca melahirkan.",
+      "tags": [
+        "kebidanan",
+        "ibu",
+        "hamil",
+        "persalinan",
+        "bayi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det53",
+      "text": "Kamu tertarik pada penyuluhan imunisasi, analisis epidemiologi wabah, dan manajemen kesehatan masyarakat.",
+      "tags": [
+        "kesehatan",
+        "masyarakat",
+        "penyuluhan",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det54",
+      "text": "Kamu suka mengolah data survei, analisis peluang probabilitas matematika, dan pengolahan data statistik.",
+      "tags": [
+        "statistika",
+        "kemampuan",
+        "analisis",
+        "data",
+        "matematika"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det55",
+      "text": "Kamu tertarik rekayasa bioteknologi, teknik kultur sel, fermentasi pangan, dan rekayasa genetika.",
+      "tags": [
+        "bioteknologi",
+        "fermentasi",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det56",
+      "text": "Kamu tertarik meneliti keanekaragaman flora dan fauna, konservasi ekosistem alam, dan biologi lingkungan.",
+      "tags": [
+        "biologi",
+        "konservasi",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det57",
+      "text": "Kamu menikmati pembuktian rumus aljabar matematika, kalkulus, dan pemodelan matematika.",
+      "tags": [
+        "matematika",
+        "kemampuan",
+        "aljabar",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det58",
+      "text": "Kamu penasaran dengan mekanika energi fisika, termodinamika, semikonduktor, dan fisika kuantum.",
+      "tags": [
+        "fisika",
+        "kemampuan",
+        "analisis",
+        "kuantum",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det59",
+      "text": "Kamu senang mereaksikan senyawa zat kimia, kimia organik, dan formulasi laboratorium.",
+      "tags": [
+        "kimia",
+        "senyawa",
+        "kemampuan",
+        "laboratorium",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det60",
+      "text": "Kamu tertarik mengelola pemasaran hasil pertanian, rantai pasok agribisnis, dan perkebunan.",
+      "tags": [
+        "agribisnis",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det61",
+      "text": "Kamu tertarik meneliti pemuliaan bibit unggul, pertanian hidroponik perkebunan, dan kesuburan tanah.",
+      "tags": [
+        "agroteknologi",
+        "kemampuan",
+        "analisis",
+        "tanah"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det62",
+      "text": "Kamu suka merancang mesin otomatisasi pertanian, irigasi sawah, dan mesin pengolahan pasca panen.",
+      "tags": [
+        "pertanian",
+        "mesin",
+        "teknik",
+        "kemampuan",
+        "teknik"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det63",
+      "text": "Kamu tertarik mempelajari penanganan hama serangga dan penyakit jamur tanaman perkebunan.",
+      "tags": [
+        "tanaman",
+        "hama",
+        "proteksi",
+        "kemampuan",
+        "proteksi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det64",
+      "text": "Kamu berminat mempelajari nutrisi pakan ternak, inseminasi buatan sapi, dan pengolahan hasil ternak.",
+      "tags": [
+        "peternakan",
+        "pakan",
+        "ternak",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det65",
+      "text": "Kamu peduli pada reboisasi hutan, konservasi satwa liar langka, serta pemanfaatan kayu kehutanan.",
+      "tags": [
+        "kehutanan",
+        "kemampuan",
+        "konservasi",
+        "hutan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det66",
+      "text": "Kamu tertarik merancang galangan kapal laut, breakwater pantai, dan bangunan teknik kelautan lepas pantai.",
+      "tags": [
+        "kelautan",
+        "teknik",
+        "pantai"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det67",
+      "text": "Kamu ingin mengelola kelestarian budidaya ikan di perairan, kelestarian ekosistem pesisir dan sungai.",
+      "tags": [
+        "perairan",
+        "manajemen",
+        "sumber",
+        "daya",
+        "konservasi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det68",
+      "text": "Kamu tertarik pada pembibitan ikan, keramba jaring apung, dan budidaya udang akuakultur.",
+      "tags": [
+        "akuakultur",
+        "perikanan",
+        "udang",
+        "budidaya",
+        "perairan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det69",
+      "text": "Kamu tertarik mempelajari dinamika arus laut, gelombang tsunami, dan oseanografi geografi samudra.",
+      "tags": [
+        "oseanografi",
+        "arus",
+        "laut",
+        "analisis",
+        "sistem"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det70",
+      "text": "Kamu ingin merancang kurikulum belajar, media e-learning, dan integrasi teknologi pendidikan.",
+      "tags": [
+        "pendidikan",
+        "teknologi",
+        "kemampuan",
+        "media",
+        "teknologi"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det71",
+      "text": "Kamu ingin menjadi pengajar atau guru bahasa Inggris, merancang modul TOEFL, dan pelatihan speaking.",
+      "tags": [
+        "pendidikan",
+        "bahasa",
+        "guru",
+        "bahasa",
+        "inggris"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det72",
+      "text": "Kamu senang mendidik balita melalui metode bermain, melatih motorik anak, dan keguruan PAUD.",
+      "tags": [
+        "paud",
+        "pendidikan",
+        "anak",
+        "anak",
+        "guru"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det73",
+      "text": "Kamu berminat mengajarkan wawasan kebangsaan, hukum konstitusi negara, dan guru PPKn sekolah.",
+      "tags": [
+        "pendidikan",
+        "wawasan",
+        "pancasila",
+        "dan",
+        "guru"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det74",
+      "text": "Kamu terpanggil mendidik anak berkebutuhan khusus (SLB) menggunakan modul pendidikan inklusif.",
+      "tags": [
+        "pendidikan",
+        "luar",
+        "anak",
+        "khusus",
+        "biasa"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det75",
+      "text": "Kamu tertarik mempelajari aransemen lagu, teknik vokal, orkestra, dan produksi audio studio musik.",
+      "tags": [
+        "musik",
+        "kemampuan",
+        "vokal",
+        "analisis",
+        "seni"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det76",
+      "text": "Kamu senang melukis kanvas, membuat patung, kurator pameran seni rupa, dan pameran galeri.",
+      "tags": [
+        "seni",
+        "rupa",
+        "kemampuan",
+        "kreatif",
+        "tim"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det77",
+      "text": "Kamu tertarik merancang identitas visual merek (branding), gambar ilustrasi kemasan, dan desain grafis.",
+      "tags": [
+        "dkv",
+        "desain",
+        "komunikasi",
+        "desain",
+        "grafis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det78",
+      "text": "Kamu menyukai akting seni peran panggung, penyutradaraan lakon drama, dan penulisan naskah teater.",
+      "tags": [
+        "teater",
+        "drama",
+        "akting",
+        "kemampuan",
+        "seni"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det79",
+      "text": "Kamu tertarik merancang tata letak perabotan rumah, dekorasi ruang interior estetik, dan furniture.",
+      "tags": [
+        "desain",
+        "interior",
+        "kemampuan",
+        "ruang",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det80",
+      "text": "Kamu berminat merancang perencanaan wilayah, sistem transportasi tata kota, dan mitigasi pemukiman.",
+      "tags": [
+        "perencanaan",
+        "wilayah",
+        "kota",
+        "dan",
+        "tata"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det81",
+      "text": "Kamu tertarik menghitung kekuatan beton jembatan, struktur fondasi gedung sipil, dan konstruksi jalan.",
+      "tags": [
+        "teknik",
+        "sipil",
+        "konstruksi",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det82",
+      "text": "Kamu senang menggambar sketsa arsitektur gedung estetik, denah rumah ramah lingkungan.",
+      "tags": [
+        "arsitektur",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det83",
+      "text": "Kamu berminat merancang instalasi pengolahan air limbah (IPAL) dan pengelolaan analisis dampak lingkungan (AMDAL).",
+      "tags": [
+        "teknik",
+        "lingkungan",
+        "limbah",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det84",
+      "text": "Kamu tertarik mengelola paket wisata perjalanan, promosi pariwisata daerah, dan ecotourism.",
+      "tags": [
+        "pariwisata",
+        "wisata",
+        "perjalanan",
+        "kemampuan",
+        "tour"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det85",
+      "text": "Kamu ingin berkarier di hotel berbintang mengelola front office, strategi reservasi kamar hotel, dan layanan.",
+      "tags": [
+        "perhotelan",
+        "hotel",
+        "kemampuan",
+        "tim",
+        "layanan"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det86",
+      "text": "Kamu menyukai dunia memasak kuliner profesional (chef), seni pastry kue, dan manajemen dapur restoran.",
+      "tags": [
+        "boga",
+        "chef",
+        "tata",
+        "kemampuan",
+        "kreatif"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det87",
+      "text": "Kamu bercita-cita mengabdi menjaga kedaulatan pertahanan negara atau ketertiban hukum kepolisian.",
+      "tags": [
+        "militer",
+        "kepolisian",
+        "dan",
+        "hukum",
+        "negara"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det88",
+      "text": "Kamu tertarik mempelajari mesin termodinamika, sistem fluida pompa, dan pemeliharaan mesin pabrik.",
+      "tags": [
+        "teknik",
+        "mesin",
+        "kemampuan",
+        "pabrik",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det89",
+      "text": "Kamu ingin mengoptimalkan efisiensi perakitan pabrik, keselamatan kerja industri, dan tata letak operasional.",
+      "tags": [
+        "teknik",
+        "industri",
+        "kemampuan",
+        "analisis",
+        "sistem"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det90",
+      "text": "Kamu ingin mempelajari proses distilasi pemisahan kimia pabrik pupuk, pengolahan gas alam dan migas.",
+      "tags": [
+        "teknik",
+        "kimia",
+        "kemampuan",
+        "analisis"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det91",
+      "text": "Kamu tertarik pada perencanaan penggalian tambang mineral terowongan bawah tanah.",
+      "tags": [
+        "teknik",
+        "pertambangan",
+        "tambang",
+        "kemampuan",
+        "mineral"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
+    },
+    {
+      "id": "q_det92",
+      "text": "Kamu tertarik mempelajari aerodinamika pesawat terbang, jet mesin penerbangan, dan kedirgantaraan.",
+      "tags": [
+        "penerbangan",
+        "teknik",
+        "pesawat",
+        "mesin",
+        "teknik"
+      ],
+      "follow_up_like": [],
+      "follow_up_skip": []
     }
   ]
 }

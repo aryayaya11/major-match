@@ -8,6 +8,8 @@ class ItemFeedbackSchema(Schema):
 class FeedbackSchema(Schema):
     rating = fields.Integer(required=True, validate=validate.Range(min=1, max=5))
     komentar = fields.String(load_default='')
+    web_rating = fields.Integer(required=True, validate=validate.Range(min=1, max=5))
+    web_komentar = fields.String(load_default='')
 
 class NextCardSchema(Schema):
     history = fields.List(fields.Dict(), load_default=[])

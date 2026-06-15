@@ -28,6 +28,34 @@ CATEGORY_KEYWORDS = {
     'Kedinasan & Lainnya': ['pemerintahan', 'birokrasi', 'kedinasan', 'administrasi negara']
 }
 
+RUMPUN_MAP = {
+    'Komputer & Informatika': 'STEM',
+    'Matematika & IPA': 'STEM',
+    'Ilmu Teknik & Industri': 'STEM',
+    'Sipil & Bangunan': 'STEM',
+    'Geografi & Kebumian': 'STEM',
+    'Kesehatan & Ilmu Keolahragaan': 'KESEHATAN',
+    'Ekonomi & Bisnis': 'BISNIS',
+    'Pariwisata & Perhotelan': 'BISNIS',
+    'Ilmu Sosial, Hukum & Politik': 'SOSIAL_HUMANIORA',
+    'Ilmu Pendidikan & Agama Islam': 'SOSIAL_HUMANIORA',
+    'Kedinasan & Lainnya': 'SOSIAL_HUMANIORA',
+    'Filsafat & Ilmu Budaya': 'SOSIAL_HUMANIORA',
+    'Seni, Desain & Musik': 'SENI_KREATIF',
+    'Pertanian': 'PERTANIAN_ALAM',
+    'Kelautan & Perikanan': 'PERTANIAN_ALAM',
+    'Kehutanan & Peternakan': 'PERTANIAN_ALAM'
+}
+
+RUMPUN_DISPLAY_NAMES = {
+    'STEM': 'Teknologi & Sains (STEM)',
+    'KESEHATAN': 'Kesehatan & Medis',
+    'BISNIS': 'Bisnis & Keuangan',
+    'SOSIAL_HUMANIORA': 'Sosial & Hukum',
+    'SENI_KREATIF': 'Kreatif & Seni',
+    'PERTANIAN_ALAM': 'Lingkungan & Alam'
+}
+
 OPENING_GROUPS = {
     'q1': 'Kreatif',
     'q2': 'Sains',
@@ -41,6 +69,8 @@ OPENING_GROUPS = {
 
 class MLService:
     _instance = None
+    RUMPUN_MAP = RUMPUN_MAP
+    RUMPUN_DISPLAY_NAMES = RUMPUN_DISPLAY_NAMES
 
     def __new__(cls):
         if cls._instance is None:
@@ -94,6 +124,53 @@ class MLService:
             logger.error(f"Gagal memuat ML models atau data: {str(e)}")
             raise e
 
+    def get_card_rumpuns(self, card: dict) -> set:
+        rumpuns = set()
+        card_tags = [t.lower() for t in card.get('tags', [])]
+        for cat, keywords in CATEGORY_KEYWORDS.items():
+            if any(any(kw in tag for kw in keywords) for tag in card_tags):
+                rumpun = RUMPUN_MAP.get(cat)
+                if rumpun:
+                    rumpuns.add(rumpun)
+        return rumpuns
+
+    def _get_top_rumpun(self, history: list) -> str:
+        liked_tags = []
+        disliked_tags = []
+        for sw in history:
+            card = self.CARD_MAP.get(sw['id'])
+            if card:
+                if sw.get('liked'):
+                    liked_tags.extend(card.get('tags', []))
+                else:
+                    disliked_tags.extend(card.get('tags', []))
+
+        tag_weights = {}
+        for t in liked_tags:
+            tag_weights[t] = tag_weights.get(t, 0) + 1.0
+        for t in disliked_tags:
+            tag_weights[t] = tag_weights.get(t, 0) - 0.5
+
+        rumpun_scores = {r: 0.0 for r in RUMPUN_MAP.values()}
+        for cat, keywords in CATEGORY_KEYWORDS.items():
+            rumpun = RUMPUN_MAP.get(cat)
+            if not rumpun:
+                continue
+            for t, w in tag_weights.items():
+                if w > 0 and any(kw in t.lower() for kw in keywords):
+                    rumpun_scores[rumpun] += w
+
+        best_rumpun = max(rumpun_scores, key=rumpun_scores.get)
+        if rumpun_scores[best_rumpun] > 0:
+            return best_rumpun
+        
+        # Fallback to recommended major rumpun
+        current_recs = self.get_rekomendasi(liked_tags, disliked_tags=disliked_tags, top_n=1)
+        if current_recs:
+            return RUMPUN_MAP.get(current_recs[0]['kategori'], 'STEM')
+        
+        return 'STEM'
+
     def build_next_card(self, history: list, limit: int = 15) -> dict | None:
         self.initialize()
         if len(history) >= limit:
@@ -111,8 +188,14 @@ class MLService:
                 else:
                     disliked_tags.extend(card.get('tags', []))
 
+        phase1_len = limit - 10
+        is_phase2 = len(history) >= phase1_len
+        top_rumpun = None
+        if is_phase2:
+            top_rumpun = self._get_top_rumpun(history[:phase1_len])
+
         # Cold start: Diversifikasi penyajian kartu pembuka
-        if not liked_tags and not disliked_tags:
+        if not is_phase2 and not liked_tags and not disliked_tags:
             remaining_openings = [oid for oid in self.OPENING_IDS if oid not in shown]
             if remaining_openings:
                 shown_groups = [OPENING_GROUPS.get(oid) for oid in shown if oid in OPENING_GROUPS]
@@ -159,6 +242,14 @@ class MLService:
             # Jika P = 0 (tidak relevan sama sekali dengan top 10), beri penalti berat
             if match_count == 0:
                 info_gain_score -= 1.0
+
+            # Boost / Penalty based on Phase 2 top rumpun
+            if is_phase2 and top_rumpun:
+                card_rumpuns = self.get_card_rumpuns(card)
+                if top_rumpun in card_rumpuns:
+                    info_gain_score += 10.0
+                else:
+                    info_gain_score -= 5.0
 
             if info_gain_score > best_score:
                 best_score = info_gain_score
