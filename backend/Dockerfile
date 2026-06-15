@@ -3,7 +3,8 @@ FROM python:3.10-slim
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir psycopg2-binary==2.9.9
 
 # Menyalin seluruh kode (kecuali yang ada di .dockerignore)
 COPY . .
