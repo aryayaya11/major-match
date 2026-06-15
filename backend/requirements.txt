@@ -11,3 +11,5 @@ Flask-Migrate==4.1.0
 flask-limiter==4.1.1
 redis==8.0.0
 pytest==7.4.0
+pg8000
+
