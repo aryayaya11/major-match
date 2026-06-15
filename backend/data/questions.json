@@ -1,0 +1,294 @@
+{
+  "cards": [
+    {
+      "id": "q1",
+      "text": "Kamu lebih suka menghabiskan waktu dengan membuat atau merancang sesuatu",
+      "tags": ["desain", "kreativitas", "seni", "teknik", "arsitektur"],
+      "follow_up_like": ["q_kreatif1", "q_kreatif2", "q_kreatif3"],
+      "follow_up_skip": ["q_analitik1", "q_analitik2"]
+    },
+    {
+      "id": "q2",
+      "text": "Kamu lebih tertarik memahami kenapa sesuatu terjadi daripada bagaimana cara membuatnya",
+      "tags": ["riset", "analisis", "sains", "penelitian", "berpikir kritis"],
+      "follow_up_like": ["q_sains1", "q_sains2", "q_sains3"],
+      "follow_up_skip": ["q_praktis1", "q_praktis2"]
+    },
+    {
+      "id": "q3",
+      "text": "Kamu merasa nyaman berbicara di depan banyak orang atau memimpin diskusi",
+      "tags": ["komunikasi", "kepemimpinan", "presentasi", "sosial", "public speaking"],
+      "follow_up_like": ["q_sosial1", "q_sosial2", "q_sosial3"],
+      "follow_up_skip": ["q_mandiri1", "q_mandiri2"]
+    },
+    {
+      "id": "q4",
+      "text": "Kamu lebih suka bekerja dengan data, angka, atau pola-pola yang bisa dianalisis",
+      "tags": ["analisis data", "statistik", "matematika", "logika", "komputer"],
+      "follow_up_like": ["q_data1", "q_data2", "q_data3"],
+      "follow_up_skip": ["q_manusia1", "q_manusia2"]
+    },
+    {
+      "id": "q5",
+      "text": "Kamu tertarik dengan cara tubuh manusia bekerja dan dunia kesehatan",
+      "tags": ["kesehatan", "biologi", "medis", "farmasi", "keperawatan"],
+      "follow_up_like": ["q_health1", "q_health2", "q_health3"],
+      "follow_up_skip": ["q_nonhealth1", "q_nonhealth2"]
+    },
+    {
+      "id": "q6",
+      "text": "Kamu suka mengikuti berita, isu sosial, atau perkembangan politik",
+      "tags": ["sosial", "politik", "hukum", "kebijakan", "pemerintahan"],
+      "follow_up_like": ["q_sospol1", "q_sospol2"],
+      "follow_up_skip": ["q_teknis1", "q_teknis2"]
+    },
+    {
+      "id": "q7",
+      "text": "Kamu lebih suka pekerjaan yang hasilnya bisa langsung kamu lihat secara fisik",
+      "tags": ["teknik", "konstruksi", "manufaktur", "praktik", "lapangan"],
+      "follow_up_like": ["q_fisik1", "q_fisik2", "q_fisik3"],
+      "follow_up_skip": ["q_konsep1", "q_konsep2"]
+    },
+    {
+      "id": "q8",
+      "text": "Kamu senang ketika bisa membantu orang lain memahami sesuatu atau menyelesaikan masalah mereka",
+      "tags": ["pendidikan", "psikologi", "konseling", "sosial", "pelayanan"],
+      "follow_up_like": ["q_help1", "q_help2", "q_help3"],
+      "follow_up_skip": ["q_solo1", "q_solo2"]
+    },
+    {
+      "id": "q_kreatif1",
+      "text": "Kamu lebih tertarik pada desain visual seperti poster, logo, atau tampilan website",
+      "tags": ["desain grafis", "UI/UX", "visual", "digital", "ilustrasi"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_kreatif2",
+      "text": "Kamu lebih suka menciptakan karya tiga dimensi seperti bangunan, produk, atau patung",
+      "tags": ["arsitektur", "desain produk", "teknik sipil", "seni rupa", "3D"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_kreatif3",
+      "text": "Kamu tertarik dengan dunia pertunjukan seperti musik, film, atau teater",
+      "tags": ["seni musik", "film", "broadcasting", "seni pertunjukan", "kreatif"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_analitik1",
+      "text": "Kamu menikmati memecahkan teka-teki logika atau soal-soal yang butuh pemikiran mendalam",
+      "tags": ["logika", "matematika", "algoritma", "pemrograman", "sains"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_analitik2",
+      "text": "Kamu lebih suka mengamati pola dan tren dalam sekumpulan informasi",
+      "tags": ["statistik", "analisis data", "riset", "ekonomi", "bisnis"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sains1",
+      "text": "Kamu tertarik dengan eksperimen di laboratorium dan pengujian hipotesis",
+      "tags": ["kimia", "biologi", "fisika", "laboratorium", "penelitian"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sains2",
+      "text": "Kamu ingin memahami bagaimana alam semesta, bumi, atau ekosistem bekerja",
+      "tags": ["geografi", "geologi", "lingkungan", "ekologi", "kehutanan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sains3",
+      "text": "Kamu tertarik mengembangkan teknologi baru atau sistem cerdas",
+      "tags": ["teknologi", "komputer", "AI", "informatika", "robotika"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_praktis1",
+      "text": "Kamu lebih suka langsung action dan belajar dari pengalaman nyata",
+      "tags": ["vokasi", "praktik", "teknik", "wirausaha", "lapangan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_praktis2",
+      "text": "Kamu termotivasi ketika melihat hasil kerja kerasmu berdampak nyata bagi orang lain",
+      "tags": ["sosial", "pendidikan", "kesehatan", "komunitas", "pelayanan publik"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sosial1",
+      "text": "Kamu tertarik memahami mengapa orang berperilaku dan berpikir dengan cara tertentu",
+      "tags": ["psikologi", "sosiologi", "antropologi", "komunikasi", "perilaku"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sosial2",
+      "text": "Kamu suka berada di lingkungan yang dinamis dan penuh interaksi setiap harinya",
+      "tags": ["komunikasi", "hubungan masyarakat", "event", "media", "pariwisata"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sosial3",
+      "text": "Kamu ingin berkontribusi pada perubahan sosial melalui kebijakan atau advokasi",
+      "tags": ["hukum", "politik", "kebijakan publik", "administrasi negara", "sosial"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_mandiri1",
+      "text": "Kamu lebih produktif saat bekerja sendiri dengan fokus penuh tanpa gangguan",
+      "tags": ["riset", "pemrograman", "akuntansi", "arsip", "analisis"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_mandiri2",
+      "text": "Kamu menikmati pekerjaan yang butuh ketelitian dan konsistensi tinggi",
+      "tags": ["akuntansi", "farmasi", "teknik", "laboratorium", "statistik"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_data1",
+      "text": "Kamu tertarik membangun program atau aplikasi yang bisa menyelesaikan masalah",
+      "tags": ["pemrograman", "software engineering", "informatika", "komputer", "algoritma"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_data2",
+      "text": "Kamu suka mencari wawasan tersembunyi dari sekumpulan data besar",
+      "tags": ["data science", "statistik", "machine learning", "analisis", "bisnis"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_data3",
+      "text": "Kamu tertarik dengan keamanan sistem dan perlindungan informasi digital",
+      "tags": ["keamanan siber", "jaringan", "informatika", "sistem informasi", "teknologi"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_manusia1",
+      "text": "Kamu lebih tertarik pada cerita, budaya, dan bagaimana manusia berkembang sepanjang sejarah",
+      "tags": ["sejarah", "sastra", "budaya", "antropologi", "filsafat"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_manusia2",
+      "text": "Kamu ingin bekerja langsung melayani atau memberdayakan masyarakat",
+      "tags": ["sosial", "kesehatan masyarakat", "pendidikan", "komunitas", "NGO"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_health1",
+      "text": "Kamu ingin terlibat langsung dalam penanganan pasien dan diagnosis penyakit",
+      "tags": ["kedokteran", "keperawatan", "kesehatan", "klinis", "medis"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_health2",
+      "text": "Kamu lebih tertarik pada penelitian obat-obatan dan zat kimia untuk kesehatan",
+      "tags": ["farmasi", "kimia", "biokimia", "riset medis", "laboratorium"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_health3",
+      "text": "Kamu tertarik pada pencegahan penyakit dan kesehatan masyarakat secara luas",
+      "tags": ["kesehatan masyarakat", "epidemiologi", "gizi", "sanitasi", "lingkungan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_nonhealth1",
+      "text": "Kamu lebih tertarik pada dunia bisnis, pasar, dan pengelolaan organisasi",
+      "tags": ["manajemen", "bisnis", "ekonomi", "keuangan", "pemasaran"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_nonhealth2",
+      "text": "Kamu ingin bekerja di bidang yang berkaitan dengan alam dan lingkungan hidup",
+      "tags": ["pertanian", "kehutanan", "kelautan", "lingkungan", "peternakan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sospol1",
+      "text": "Kamu tertarik memperjuangkan keadilan melalui jalur hukum atau advokasi",
+      "tags": ["hukum", "ilmu hukum", "advokat", "kebijakan", "HAM"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_sospol2",
+      "text": "Kamu ingin terlibat dalam pembuatan kebijakan publik atau pemerintahan",
+      "tags": ["administrasi negara", "ilmu politik", "pemerintahan", "birokrasi", "kedinasan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_teknis1",
+      "text": "Kamu lebih tertarik memahami cara kerja mesin, sistem, atau infrastruktur",
+      "tags": ["teknik mesin", "teknik industri", "teknik elektro", "sistem", "infrastruktur"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_teknis2",
+      "text": "Kamu suka merancang sesuatu yang bisa digunakan banyak orang secara efisien",
+      "tags": ["teknik industri", "manajemen", "sistem informasi", "logistik", "operasional"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_fisik1",
+      "text": "Kamu tertarik merancang dan membangun struktur seperti gedung, jalan, atau jembatan",
+      "tags": ["teknik sipil", "arsitektur", "konstruksi", "infrastruktur", "bangunan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_fisik2",
+      "text": "Kamu suka bekerja dengan mesin, elektronik, atau perangkat keras",
+      "tags": ["teknik mesin", "teknik elektro", "elektronika", "manufaktur", "robotika"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_fisik3",
+      "text": "Kamu tertarik dengan dunia kuliner, perhotelan, atau pariwisata",
+      "tags": ["pariwisata", "perhotelan", "kuliner", "hospitality", "tata boga"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_konsep1",
+      "text": "Kamu tertarik pada pertanyaan-pertanyaan besar tentang makna hidup dan etika",
+      "tags": ["filsafat", "teologi", "ilmu budaya", "humaniora", "sastra"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_konsep2",
+      "text": "Kamu lebih suka menghasilkan karya yang bisa dinikmati atau dirasakan orang lain",
+      "tags": ["seni", "musik", "sastra", "film", "desain komunikasi visual"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_help1",
+      "text": "Kamu ingin menjadi pendidik atau mentor yang membimbing generasi muda",
+      "tags": ["pendidikan", "keguruan", "pengajaran", "bimbingan konseling", "PGSD"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_help2",
+      "text": "Kamu ingin membantu orang mengatasi masalah emosional atau mental mereka",
+      "tags": ["psikologi", "konseling", "kesehatan mental", "terapi", "sosial"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_help3",
+      "text": "Kamu ingin bekerja di organisasi sosial atau lembaga kemanusiaan",
+      "tags": ["kesejahteraan sosial", "NGO", "komunitas", "sosial", "pemberdayaan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_solo1",
+      "text": "Kamu lebih suka pekerjaan yang hasilnya bisa terukur secara objektif",
+      "tags": ["akuntansi", "statistik", "teknik", "audit", "keuangan"],
+      "follow_up_like": [], "follow_up_skip": []
+    },
+    {
+      "id": "q_solo2",
+      "text": "Kamu tertarik bekerja di bidang yang terus berkembang dan selalu ada hal baru untuk dipelajari",
+      "tags": ["teknologi", "riset", "sains", "inovasi", "penelitian"],
+      "follow_up_like": [], "follow_up_skip": []
+    }
+  ]
+}

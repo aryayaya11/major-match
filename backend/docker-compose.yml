@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: majormatch_web
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - SQLALCHEMY_DATABASE_URI=sqlite:///majorMatch.db
+    volumes:
+      - ./instance:/app/instance
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis:alpine"
+    container_name: majormatch_redis
+    ports:
+      - "6379:6379"
