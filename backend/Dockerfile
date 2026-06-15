@@ -3,7 +3,9 @@ FROM python:3.10-slim
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# pg8000 driver for PostgreSQL
+RUN pip install --no-cache-dir pg8000 && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Menyalin seluruh kode (kecuali yang ada di .dockerignore)
 COPY . .
