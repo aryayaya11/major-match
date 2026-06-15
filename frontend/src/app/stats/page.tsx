@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -48,7 +49,7 @@ export default function StatsPage() {
 
   return (
     <div className="container" style={{ padding: "40px 20px" }}>
-      <button 
+      <button
         onClick={() => router.push("/")}
         style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "var(--muted)", fontWeight: 700, cursor: "pointer", marginBottom: 24 }}
       >
@@ -68,7 +69,7 @@ export default function StatsPage() {
         </div>
       ) : data ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16 }}>
             <div style={{ background: "white", padding: 20, borderRadius: 16, border: "2px solid #E2E8F0", boxShadow: "var(--shadow)" }}>
               <div style={{ color: "var(--muted)", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", marginBottom: 8 }}>Total Sesi</div>
@@ -87,7 +88,7 @@ export default function StatsPage() {
           <h2 style={{ fontFamily: "var(--font-nunito)", fontSize: "1.4rem", fontWeight: 800, color: "var(--blue)", marginTop: 16 }}>
             Feedback Rekomendasi Jurusan
           </h2>
-          
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16 }}>
             <div style={{ background: "#F0FDF4", padding: 20, borderRadius: 16, border: "2px solid #A7F3D0", display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ background: "#D1FAE5", padding: 12, borderRadius: 12, color: "var(--green)" }}><ThumbsUp size={24} /></div>
@@ -96,7 +97,7 @@ export default function StatsPage() {
                 <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--green)" }}>{data.item_feedback?.total_likes || 0}</div>
               </div>
             </div>
-            
+
             <div style={{ background: "#FEF2F2", padding: 20, borderRadius: 16, border: "2px solid #FECACA", display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ background: "#FEE2E2", padding: 12, borderRadius: 12, color: "var(--red)" }}><ThumbsDown size={24} /></div>
               <div>
@@ -104,7 +105,7 @@ export default function StatsPage() {
                 <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--red)" }}>{data.item_feedback?.total_dislikes || 0}</div>
               </div>
             </div>
-            
+
             <div style={{ background: "#EEF2FF", padding: 20, borderRadius: 16, border: "2px solid #BFDBFE", display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ background: "#DBEAFE", padding: 12, borderRadius: 12, color: "var(--blue)" }}><BarChart2 size={24} /></div>
               <div>
@@ -128,10 +129,10 @@ export default function StatsPage() {
                         {item.timestamp ? new Date(item.timestamp).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
                       </span>
                     </div>
-                    
+
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, background: "#F8FAFC", padding: 12, borderRadius: 12 }}>
                       <div>
-                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>Akurasi Rekomendasi Jurusan</div>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>1. Rekomendasi Jurusan</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
                           <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.rating}</span>
                           <span style={{ color: "var(--yellow2)" }}>{"⭐".repeat(item.rating)}</span>
@@ -147,9 +148,9 @@ export default function StatsPage() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div style={{ borderLeft: "1px dashed #E2E8F0", paddingLeft: 16 }}>
-                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>Penggunaan Website</div>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>2. Penggunaan Website</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
                           <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.web_rating}</span>
                           <span style={{ color: "var(--yellow2)" }}>{"⭐".repeat(item.web_rating)}</span>
