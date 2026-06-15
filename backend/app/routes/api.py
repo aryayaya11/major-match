@@ -134,6 +134,28 @@ def recommend():
                 else:
                     disliked_tags.extend(card.get('tags', []))
 
+    # Generate a unique cache key based on sorted liked and disliked tags
+    sorted_likes = sorted(list(set(liked_tags)))
+    sorted_dislikes = sorted(list(set(disliked_tags)))
+    cache_key = f"rec_results:{','.join(sorted_likes)}|{','.join(sorted_dislikes)}"
+
+    # Check cache
+    cached_hasil = None
+    try:
+        cached_hasil = cache.get(cache_key)
+    except Exception as e:
+        logger.error(f"Error reading from Redis cache: {e}")
+
+    if cached_hasil is not None:
+        sid = str(uuid.uuid4())
+        session['last'] = {
+            'session_id': sid,
+            'nama':       nama,
+            'liked_tags': liked_tags,
+            'hasil':      cached_hasil,
+        }
+        return jsonify({'nama': nama, 'hasil': cached_hasil, 'session_id': sid, 'status': 'ok'})
+
     # 1. Deteksi jawaban ekstrem di Fase 1
     if len(history) > 0:
         phase1_len = 20 if len(history) == 30 else (25 if len(history) == 35 else len(history))
@@ -158,6 +180,11 @@ def recommend():
 
     try:
         hasil = ml_service.get_rekomendasi(liked_tags, disliked_tags=disliked_tags, history=history)
+        # Store computed result in cache (5 minutes expiration)
+        try:
+            cache.set(cache_key, hasil, timeout=300)
+        except Exception as e:
+            logger.error(f"Error writing to Redis cache: {e}")
     except Exception as e:
         logger.error(f"Error in recommend: {e}")
         return jsonify({'error': 'Internal server error'}), 500

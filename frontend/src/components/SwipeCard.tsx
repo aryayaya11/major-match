@@ -17,7 +17,10 @@ interface SwipeCardProps {
 
 export default function SwipeCard({ card, onSwipe, index }: SwipeCardProps) {
   const [exitX, setExitX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
 
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
@@ -26,7 +29,29 @@ export default function SwipeCard({ card, onSwipe, index }: SwipeCardProps) {
   const nopeOpacity = useTransform(x, [-100, -50, 0], [1, 0, 0]);
   const likeOpacity = useTransform(x, [0, 50, 100], [0, 0, 1]);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging || index !== 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left - width / 2;
+    const mouseY = e.clientY - rect.top - height / 2;
+    
+    // Max 15 degrees tilt for responsive but controlled look
+    const rX = -(mouseY / height) * 15;
+    const rY = (mouseX / width) * 15;
+    
+    rotateX.set(rX);
+    rotateY.set(rY);
+  };
+
+  const handleMouseLeave = () => {
+    rotateX.set(0);
+    rotateY.set(0);
+  };
+
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    setIsDragging(false);
     if (info.offset.x > 100) {
       setExitX(250);
       onSwipe(true);
@@ -56,13 +81,20 @@ export default function SwipeCard({ card, onSwipe, index }: SwipeCardProps) {
         zIndex: isFront ? 10 : 0,
         x: isFront ? x : 0,
         rotate: isFront ? rotate : 0,
+        rotateX: isFront ? rotateX : 0,
+        rotateY: isFront ? rotateY : 0,
+        transformStyle: "preserve-3d",
+        perspective: 1000,
         opacity: isFront ? opacity : 1,
         scale: isFront ? 1 : 0.96,
         y: isFront ? 0 : 8,
       }}
       drag={isFront ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
+      onDragStart={() => setIsDragging(true)}
       onDragEnd={handleDragEnd}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       whileTap={isFront ? { cursor: "grabbing", scale: 0.98 } : {}}
       animate={exitX ? { x: exitX, opacity: 0 } : {}}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}

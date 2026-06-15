@@ -833,7 +833,7 @@ export default function Home() {
                 </div>
 
                 {j.alasan && (
-                  <div style={{ background: "var(--bg)", border: "1px solid white", borderRadius: 12, padding: 14, marginBottom: 16, fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.6 }}>
+                  <div style={{ background: "var(--bg)", border: "1px solid white", borderRadius: 12, padding: 14, marginBottom: 16, fontSize: "0.85rem", color: "var(--text)", lineHeight: 1.6, whiteSpace: "pre-line" }}>
                     <strong>💡 Mengapa ini direkomendasikan?</strong><br/>
                     {j.alasan}
                   </div>

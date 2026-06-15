@@ -272,6 +272,7 @@ class MLService:
             return "Sistem merekomendasikan jurusan ini secara acak karena Anda belum memilih preferensi spesifik."
         
         j_text = str(skills).lower() + " " + str(jurusan).lower()
+        base_alasan = ""
         
         # Coba cari kartu yang disukai dari history yang relevan dengan jurusan/skills ini
         if history:
@@ -291,12 +292,40 @@ class MLService:
                 liked_cards_matching.sort(key=lambda x: len(x[1]), reverse=True)
                 best_card, matching_tags = liked_cards_matching[0]
                 card_text = best_card.get('text', '')
-                return f"Direkomendasikan karena kamu memilih 'Iya' pada pertanyaan \"{card_text}\" (terkait {', '.join(matching_tags[:2])})."
+                base_alasan = f"Direkomendasikan karena kamu memilih 'Iya' pada pertanyaan \"{card_text}\" (terkait {', '.join(matching_tags[:2])})."
 
-        matched = [t for t in tags if t.lower() in j_text]
-        if matched:
-            return f"{jurusan} direkomendasikan karena Anda memiliki minat pada {', '.join(matched[:3])} yang sangat relevan dengan bidang ini."
-        return f"{jurusan} direkomendasikan karena keseluruhan profil minat Anda cocok dengan karakteristik jurusan ini."
+        if not base_alasan:
+            matched = [t for t in tags if t.lower() in j_text]
+            if matched:
+                base_alasan = f"{jurusan} direkomendasikan karena Anda memiliki minat pada {', '.join(matched[:3])} yang sangat relevan dengan bidang ini."
+            else:
+                base_alasan = f"{jurusan} direkomendasikan karena keseluruhan profil minat Anda cocok dengan karakteristik jurusan ini."
+
+        # Dynamic Skills Match
+        major_skills = [s.strip() for s in str(skills).split(",") if s.strip()]
+        matching_skills = []
+        for s in major_skills:
+            s_lower = s.lower()
+            for t in tags:
+                t_lower = t.lower()
+                if t_lower in s_lower or s_lower in t_lower:
+                    matching_skills.append(s)
+                    break
+
+        # Remove duplicates preserving order
+        seen = set()
+        unique_matching_skills = []
+        for s in matching_skills:
+            s_title = s.title()
+            if s_title not in seen:
+                seen.add(s_title)
+                unique_matching_skills.append(s_title)
+
+        if unique_matching_skills:
+            skills_list_str = ", ".join(unique_matching_skills[:3])
+            base_alasan += f"\n\n🎯 Keahlianmu yang sangat cocok: {skills_list_str}."
+
+        return base_alasan
 
     def get_rekomendasi(self, liked_tags: list, disliked_tags: list = None, top_n: int = 3, history: list = None) -> list:
         self.initialize()
