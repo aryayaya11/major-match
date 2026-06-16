@@ -114,6 +114,7 @@ def test_feedback_and_stats(client):
 
     # Post feedback
     response = client.post('/api/feedback', json={
+        'session_id': 'test-session-123',
         'rating': 4,
         'komentar': 'Bagus sekali rekomendasinya',
         'web_rating': 5,

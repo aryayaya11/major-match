@@ -445,6 +445,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
+          session_id: sessionId,
           rating, 
           komentar: comment,
           web_rating: webRating,

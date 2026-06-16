@@ -6,6 +6,7 @@ class ItemFeedbackSchema(Schema):
     feedback = fields.String(required=True, validate=validate.OneOf(['like', 'dislike']))
 
 class FeedbackSchema(Schema):
+    session_id = fields.String(required=True, validate=validate.Length(min=1))
     rating = fields.Integer(required=True, validate=validate.Range(min=1, max=5))
     komentar = fields.String(load_default='')
     web_rating = fields.Integer(required=True, validate=validate.Range(min=1, max=5))

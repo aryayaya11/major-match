@@ -10,6 +10,8 @@ class FeedbackSession(db.Model):
     session_id = db.Column(db.String(64), unique=True, nullable=False)
     nama       = db.Column(db.String(100), nullable=False)
     liked_tags = db.Column(db.Text)
+    disliked_tags = db.Column(db.Text)
+    swipe_history = db.Column(db.Text) # JSON string of swipe history
     hasil_1    = db.Column(db.String(200))
     hasil_2    = db.Column(db.String(200))
     hasil_3    = db.Column(db.String(200))
@@ -20,10 +22,20 @@ class FeedbackSession(db.Model):
     timestamp  = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
+        import json
+        swipes = []
+        if self.swipe_history:
+            try:
+                swipes = json.loads(self.swipe_history)
+            except:
+                pass
         return {
             'id':         self.id,
+            'session_id': self.session_id,
             'nama':       self.nama,
             'liked_tags': self.liked_tags,
+            'disliked_tags': self.disliked_tags,
+            'swipe_history': swipes,
             'hasil':      [self.hasil_1, self.hasil_2, self.hasil_3],
             'rating':     self.rating,
             'komentar':   self.komentar,

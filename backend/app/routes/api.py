@@ -147,47 +147,40 @@ def recommend():
         logger.error(f"Error reading from Redis cache: {e}")
 
     if cached_hasil is not None:
-        sid = str(uuid.uuid4())
-        session['last'] = {
-            'session_id': sid,
-            'nama':       nama,
-            'liked_tags': liked_tags,
-            'hasil':      cached_hasil,
-        }
-        return jsonify({'nama': nama, 'hasil': cached_hasil, 'session_id': sid, 'status': 'ok'})
+        hasil = cached_hasil
+    else:
+        # 1. Deteksi jawaban ekstrem di Fase 1
+        if len(history) > 0:
+            phase1_len = 20 if len(history) == 30 else (25 if len(history) == 35 else len(history))
+            phase1_history = history[:phase1_len]
+            
+            all_liked = all(sw.get('liked') for sw in phase1_history)
+            all_disliked = all(not sw.get('liked') for sw in phase1_history)
+            if all_liked:
+                return jsonify({
+                    'nama': nama,
+                    'status': 'invalid_all_liked',
+                    'hasil': [],
+                    'session_id': str(uuid.uuid4())
+                })
+            elif all_disliked:
+                return jsonify({
+                    'nama': nama,
+                    'status': 'invalid_all_disliked',
+                    'hasil': [],
+                    'session_id': str(uuid.uuid4())
+                })
 
-    # 1. Deteksi jawaban ekstrem di Fase 1
-    if len(history) > 0:
-        phase1_len = 20 if len(history) == 30 else (25 if len(history) == 35 else len(history))
-        phase1_history = history[:phase1_len]
-        
-        all_liked = all(sw.get('liked') for sw in phase1_history)
-        all_disliked = all(not sw.get('liked') for sw in phase1_history)
-        if all_liked:
-            return jsonify({
-                'nama': nama,
-                'status': 'invalid_all_liked',
-                'hasil': [],
-                'session_id': str(uuid.uuid4())
-            })
-        elif all_disliked:
-            return jsonify({
-                'nama': nama,
-                'status': 'invalid_all_disliked',
-                'hasil': [],
-                'session_id': str(uuid.uuid4())
-            })
-
-    try:
-        hasil = ml_service.get_rekomendasi(liked_tags, disliked_tags=disliked_tags, history=history)
-        # Store computed result in cache (5 minutes expiration)
         try:
-            cache.set(cache_key, hasil, timeout=300)
+            hasil = ml_service.get_rekomendasi(liked_tags, disliked_tags=disliked_tags, history=history)
+            # Store computed result in cache (5 minutes expiration)
+            try:
+                cache.set(cache_key, hasil, timeout=300)
+            except Exception as e:
+                logger.error(f"Error writing to Redis cache: {e}")
         except Exception as e:
-            logger.error(f"Error writing to Redis cache: {e}")
-    except Exception as e:
-        logger.error(f"Error in recommend: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
+            logger.error(f"Error in recommend: {e}")
+            return jsonify({'error': 'Internal server error'}), 500
 
     sid = str(uuid.uuid4())
     session['last'] = {
@@ -196,6 +189,25 @@ def recommend():
         'liked_tags': liked_tags,
         'hasil':      hasil,
     }
+
+    # Auto-save session details to the database (Stage 1)
+    try:
+        import json
+        record = FeedbackSession(
+            session_id = sid,
+            nama       = nama,
+            liked_tags = ', '.join(liked_tags),
+            disliked_tags = ', '.join(disliked_tags),
+            swipe_history = json.dumps(history),
+            hasil_1    = hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
+            hasil_2    = hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
+            hasil_3    = hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
+        )
+        db.session.add(record)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Database error auto-saving feedback session in recommend: {e}")
 
     return jsonify({'nama': nama, 'hasil': hasil, 'session_id': sid, 'status': 'ok'})
 
@@ -272,29 +284,39 @@ def feedback():
     except ValidationError as err:
         return jsonify(err.messages), 400
 
+    session_id = data.get('session_id')
     rating = data.get('rating')
     komentar = data.get('komentar', '')
     web_rating = data.get('web_rating')
     web_komentar = data.get('web_komentar', '')
 
-    last = session.get('last', {})
-    hasil = last.get('hasil', [{}, {}, {}])
-
     try:
-        record = FeedbackSession(
-            session_id = last.get('session_id', str(uuid.uuid4())),
-            nama       = last.get('nama', 'anonymous'),
-            liked_tags = ', '.join(last.get('liked_tags', [])),
-            hasil_1    = hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
-            hasil_2    = hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
-            hasil_3    = hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
-            rating     = rating,
-            komentar   = komentar,
-            web_rating = web_rating,
-            web_komentar = web_komentar,
-        )
-        db.session.add(record)
-        db.session.commit()
+        # Cari record yang sudah dibuat saat /recommend
+        record = FeedbackSession.query.filter_by(session_id=session_id).first()
+        if record:
+            record.rating = rating
+            record.komentar = komentar
+            record.web_rating = web_rating
+            record.web_komentar = web_komentar
+            db.session.commit()
+        else:
+            # Fallback: Buat baru jika tidak ditemukan
+            last = session.get('last', {})
+            hasil = last.get('hasil', [{}, {}, {}])
+            record = FeedbackSession(
+                session_id = session_id,
+                nama       = last.get('nama', 'anonymous'),
+                liked_tags = ', '.join(last.get('liked_tags', [])),
+                hasil_1    = hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
+                hasil_2    = hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
+                hasil_3    = hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
+                rating     = rating,
+                komentar   = komentar,
+                web_rating = web_rating,
+                web_komentar = web_komentar,
+            )
+            db.session.add(record)
+            db.session.commit()
     except Exception as e:
         db.session.rollback()
         logger.error(f"Database error in feedback: {e}")
