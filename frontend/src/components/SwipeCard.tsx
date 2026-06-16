@@ -88,6 +88,7 @@ export default function SwipeCard({ card, onSwipe, index }: SwipeCardProps) {
         opacity: isFront ? opacity : 1,
         scale: isFront ? 1 : 0.96,
         y: isFront ? 0 : 8,
+        willChange: "transform, opacity",
       }}
       drag={isFront ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}

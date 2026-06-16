@@ -373,25 +373,41 @@ class MLService:
             except Exception as e:
                 logger.error(f"Gagal menggunakan model hasil training: {e}. Menggunakan fallback TF-IDF default.")
         
-        # 1. Ambil data feedback lengkap dari Database (Like & Dislike)
+        # 1. Ambil data feedback lengkap dari Database (Like & Dislike) - Caching 60 detik untuk performa kuis
         likes_count = {}
         dislikes_count = {}
+        
+        from app import cache
+        cached_fb = None
         try:
-            res_likes = db.session.query(
-                ItemFeedback.rekomendasi_jurusan,
-                db.func.count(ItemFeedback.id)
-            ).filter(ItemFeedback.feedback == 'like').group_by(ItemFeedback.rekomendasi_jurusan).all()
-            for row in res_likes:
-                likes_count[row[0]] = row[1]
-                
-            res_dis = db.session.query(
-                ItemFeedback.rekomendasi_jurusan,
-                db.func.count(ItemFeedback.id)
-            ).filter(ItemFeedback.feedback == 'dislike').group_by(ItemFeedback.rekomendasi_jurusan).all()
-            for row in res_dis:
-                dislikes_count[row[0]] = row[1]
+            cached_fb = cache.get("popularity_feedback_counts")
         except Exception as e:
-            logger.error(f"Error fetching feedback counts: {e}")
+            logger.error(f"Error reading popularity counts from cache: {e}")
+            
+        if cached_fb is not None:
+            likes_count, dislikes_count = cached_fb
+        else:
+            try:
+                res_likes = db.session.query(
+                    ItemFeedback.rekomendasi_jurusan,
+                    db.func.count(ItemFeedback.id)
+                ).filter(ItemFeedback.feedback == 'like').group_by(ItemFeedback.rekomendasi_jurusan).all()
+                for row in res_likes:
+                    likes_count[row[0]] = row[1]
+                    
+                res_dis = db.session.query(
+                    ItemFeedback.rekomendasi_jurusan,
+                    db.func.count(ItemFeedback.id)
+                ).filter(ItemFeedback.feedback == 'dislike').group_by(ItemFeedback.rekomendasi_jurusan).all()
+                for row in res_dis:
+                    dislikes_count[row[0]] = row[1]
+                
+                try:
+                    cache.set("popularity_feedback_counts", (likes_count, dislikes_count), timeout=60)
+                except Exception as e:
+                    logger.error(f"Error writing popularity counts to cache: {e}")
+            except Exception as e:
+                logger.error(f"Error fetching feedback counts from DB: {e}")
 
         # Jika tidak ada tag, lakukan random selection (fallback)
         if not liked_tags:
