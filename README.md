@@ -265,7 +265,7 @@ $$
 \vec{U} = \max(\vec{U}_{\text{pos}} - 0.5 \cdot \vec{U}_{\text{neg}}, 0)
 $$
 
-### D. Efisiensi Pertanyaan: Shannon Entropy & Active Learning
+### D. Efisiensi Pertanyaan: Shannon Entropy, Active Learning & Epsilon-Greedy
 Agar kuis tidak membutuhkan waktu lama, AI menggunakan teknik **Active Learning**. AI mengevaluasi sisa pertanyaan yang belum diajukan, lalu memilih pertanyaan yang **paling mampu memisahkan** kandidat rekomendasi teratas secara optimal.
 
 Langkah-langkah evaluasi informasi pertanyaan:
@@ -287,14 +287,17 @@ $$
 > * Jika $P(C) = 0.0$ atau $P(C) = 1.0$ (semua kandidat cocok atau tidak cocok sama sekali), nilai Entropy mencapai batas minimumnya $H(C) = 0.0$. Pertanyaan ini tidak berguna karena tidak memberikan daya pemisah baru.
 > * AI secara konsisten menyajikan kartu yang memiliki $H(C)$ tertinggi di setiap giliran kuis.
 
+#### Mekanisme Eksplorasi: Epsilon-Greedy
+Untuk mencegah sistem terjebak dalam bias rumpun minat lokal terlalu cepat (misal hanya memunculkan kartu bertema IT setelah pengguna menyukai satu kartu koding), sistem menerapkan **Epsilon-Greedy Exploration** dengan tingkat eksplorasi $\epsilon = 0.15$:
+* **Eksploitasi ($85\%$ peluang)**: Memilih kartu dengan nilai Shannon Entropy tertinggi berdasarkan profil minat saat ini.
+* **Eksplorasi ($15\%$ peluang)**: Memilih kartu secara acak dari rumpun minat yang **belum pernah ditampilkan** dalam sejarah kuis pengguna. Hal ini membuka ruang untuk mendeteksi minat tersembunyi yang lain.
+
 ### E. Penanganan Awal Kuis (Cold-Start & Noise)
 * **Cold-Start Diversification**: Pada pertanyaan ke-1 sampai ke-8, pengguna belum memiliki profil minat. Untuk menghindari bias di satu rumpun ilmu, AI memilih kartu dari kelompok minat yang belum pernah disajikan sebelumnya berdasarkan skema pembagian kelompok (`q1` Kreatif, `q2` Sains, `q3` Sosial, `q4` STEM, `q5` Kesehatan, dst.).
 * **Random Uniform Noise**: Ditambahkan nilai acak kecil sebesar $\epsilon \sim \text{Uniform}(0, 0.05)$ pada skor Entropy untuk memberikan variasi agar urutan pertanyaan tidak selalu kaku jika terjadi nilai Entropy yang sama (*tiebreaker*).
 
-### F. Umpan Balik Populer: SQLite Popularity Boost
-Validitas AI diperkuat dengan masukan langsung dari komunitas pengguna sesungguhnya.
-* Jurusan yang sering mendapatkan jempol ke atas (`like`) pada dashboard hasil kuis akan mendapat penambahan nilai dinamis (*popularity boost*).
-* Jurusan yang mendapat jempol ke bawah (`dislike`) akan mendapatkan pemotongan nilai.
+### F. Umpan Balik Kolektif: Bayesian Average Popularity Boost
+Validitas AI diperkuat dengan masukan langsung dari komunitas pengguna sesungguhnya menggunakan pendekatan **Bayesian Average** (menghindari bias rating ekstrim pada volume voting kecil, serupa dengan yang diterapkan pada rating IMDb):
 
 $$
 \text{Skor Akhir}(J) = \text{Skor Gabungan}(J) + \text{Boost}(J)
@@ -305,16 +308,27 @@ $$
 $$
 
 $$
-\text{Boost}(J) = \left( \frac{\text{Likes}_J}{\text{Likes}_J + \text{Dislikes}_J} - 0.5 \right) \times \min(\text{Total Feedback}_J, 8)
+\text{Boost}(J) = \left( \text{BayesianRatio}(J) - 0.5 \right) \times \min(\text{Total Feedback}_J, 8)
 $$
+
+Di mana rasio Bayesian dihitung dengan rumus:
+
+$$
+\text{BayesianRatio}(J) = \frac{v}{v + m} \cdot R + \frac{m}{v + m} \cdot C
+$$
+
+* $v$ = Jumlah ulasan untuk jurusan $J$ ($\text{Likes}_J + \text{Dislikes}_J$).
+* $m$ = Ambang batas minimal volume ulasan untuk mulai dipercayai ($m = 5.0$).
+* $R$ = Rasio kesukaan aktual ($\text{Likes}_J / v$).
+* $C$ = Rata-rata rasio kesukaan di seluruh database global.
 
 Batas maksimal $\min(\text{Total Feedback}, 8)$ digunakan untuk membatasi nilai boost maksimal di angka $\pm 4\%$, memastikan data voting populer tidak merusak objektivitas kecocokan murni TF-IDF pengguna.
 
 ---
 
-## 5. Skema & Desain Database (SQLite)
+## 5. Skema & Desain Database (SQLite / PostgreSQL)
 
-Database relasional SQLite (`backend/instance/majorMatch.db`) diakses menggunakan Flask-SQLAlchemy (ORM) untuk mencatat aktivitas umpan balik kuis secara persisten.
+Database relasional diakses menggunakan Flask-SQLAlchemy (ORM) untuk mencatat aktivitas umpan balik kuis secara persisten.
 
 ### Entity Relationship & Struktur Tabel
 ```mermaid
@@ -324,11 +338,15 @@ erDiagram
         varchar session_id UK
         varchar nama
         text liked_tags
+        text disliked_tags
+        text swipe_history
         varchar hasil_1
         varchar hasil_2
         varchar hasil_3
         int rating
         text komentar
+        int web_rating
+        text web_komentar
         datetime timestamp
     }
     item_feedback {
@@ -341,24 +359,28 @@ erDiagram
 ```
 
 #### A. Tabel `feedback_sessions`
-Digunakan untuk menampung data kepuasan umum pengguna terhadap aplikasi di akhir kuis (Rating bintang 1-5 dan ulasan saran).
+Digunakan untuk menampung data riwayat swipe kuis dan hasil kecocokan (Auto-save) serta data ulasan kepuasan pengguna di akhir kuis (Rating bintang 1-5 dan ulasan saran).
 ```sql
 CREATE TABLE feedback_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id VARCHAR(64) UNIQUE NOT NULL,
     nama VARCHAR(100) NOT NULL,
     liked_tags TEXT,
+    disliked_tags TEXT,
+    swipe_history TEXT, -- Menyimpan JSON string riwayat swipe detail
     hasil_1 VARCHAR(200),
     hasil_2 VARCHAR(200),
     hasil_3 VARCHAR(200),
-    rating INTEGER NOT NULL,
+    rating INTEGER,
     komentar TEXT,
+    web_rating INTEGER,
+    web_komentar TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 #### B. Tabel `item_feedback`
-Digunakan untuk menampung data jempol menyukai/tidak menyukai terhadap item spesifik rekomendasi jurusan dari pengguna. Data inilah yang ditarik secara dinamis oleh `ml_service.py` untuk menghitung nilai *Popularity Boost*.
+Digunakan untuk menampung data jempol menyukai/tidak menyukai terhadap item spesifik rekomendasi jurusan dari pengguna. Data inilah yang ditarik secara dinamis oleh `ml_service.py` untuk menghitung nilai *Popularity Boost* berbasis **Bayesian Average**.
 ```sql
 CREATE TABLE item_feedback (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -522,6 +544,9 @@ $$
    ```
    Keahlian yang unik hanya dimiliki salah satu jurusan akan ditampilkan dengan warna latar amber menyala dan lencana lencana `⭐ Unique`. Keahlian yang sama-sama dipelajari di kedua jurusan ditampilkan sebagai tag abu-abu netral biasa. Ini mempermudah pelajar membedakan kelebihan kompetensi antar jurusan.
 
+### E. Pemantauan Trafik Pengunjung (Vercel Analytics)
+Aplikasi terintegrasi dengan `@vercel/analytics` di Next.js untuk memantau jumlah kunjungan pengguna secara real-time. Pelacakan diinisialisasi secara global di berkas `layout.tsx` melalui komponen `<Analytics />` untuk memantau kinerja situs serta demografi perangkat pengunjung secara anonim.
+
 ---
 
 ## 8. Petunjuk Instalasi, Pengoperasian & Pengujian
@@ -571,3 +596,17 @@ Untuk menguji reliabilitas model Machine Learning dan integritas REST API backen
 python -m pytest
 ```
 *Pytest akan memuat environment simulasi kuis, mensimulasikan swipe, dan memastikan respons rekomendasi berada pada batas akurasi matematika yang diharapkan.*
+
+### E. Eksekusi Skrip Evaluasi Akurasi Persona (`evaluasi_model.py`)
+Untuk mengevaluasi model `ml_service` dengan mensimulasikan 10 persona minat siswa secara terprogram (misalnya Persona IT, Seni, Bisnis, Kesehatan, Kehutanan, dsb.), jalankan dari direktori `backend/`:
+```powershell
+python evaluasi_model.py
+```
+*Skrip ini mengukur akurasi model menggunakan metrik **Precision@3** dan menampilkan ringkasan statistiknya langsung di terminal.*
+
+### F. Penarikan Dataset Pengguna Beta (`export_data.py`)
+Untuk mengekstrak data ulasan dan kuis pengguna nyata (fase Beta) dari database PostgreSQL (di cloud Railway) ke format file CSV lokal, pastikan variabel `SQLALCHEMY_DATABASE_URI` di file `backend/.env` telah menunjuk ke **External Connection String** PostgreSQL Railway Anda, lalu jalankan dari direktori `backend/`:
+```powershell
+python export_data.py
+```
+*Skrip ini mengekspor data kuis ke `data_feedback_sessions.csv` dan voting jurusan ke `data_item_feedbacks.csv`, serta merangkum rating kepuasan rata-rata.*

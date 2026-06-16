@@ -216,7 +216,30 @@ class MLService:
                 remaining_openings.sort(key=lambda oid: shown_groups.count(OPENING_GROUPS.get(oid)) + random.uniform(0, 0.1))
                 return self.CARD_MAP.get(remaining_openings[0])
 
-        # MACHINE LEARNING MODE: Active Learning (Information Gain)
+        # MACHINE LEARNING MODE: Active Learning (Information Gain) + Epsilon-Greedy Exploration
+        # 15% kesempatan (epsilon = 0.15) untuk melakukan eksplorasi rumpun minat baru yang belum ditanyakan
+        epsilon = 0.15
+        if len(history) > 0 and random.random() < epsilon:
+            # Cari rumpun minat yang sudah pernah ditampilkan
+            shown_rumpuns = set()
+            for sw in history:
+                card = self.CARD_MAP.get(sw['id'])
+                if card:
+                    shown_rumpuns.update(self.get_card_rumpuns(card))
+            
+            # Cari kartu kuis tersisa yang memuat rumpun minat yang BELUM pernah ditampilkan
+            explorer_candidates = []
+            for cid, card in self.CARD_MAP.items():
+                if cid in shown:
+                    continue
+                card_rumpuns = self.get_card_rumpuns(card)
+                if card_rumpuns and not (card_rumpuns & shown_rumpuns):
+                    explorer_candidates.append(card)
+            
+            if explorer_candidates:
+                logger.info("Epsilon-Greedy: Melakukan eksplorasi kartu dengan memilih rumpun minat baru.")
+                return random.choice(explorer_candidates)
+
         # 1. Dapatkan top 10 prediksi jurusan saat ini
         current_recs = self.get_rekomendasi(liked_tags, disliked_tags=disliked_tags, top_n=10)
         
@@ -445,6 +468,14 @@ class MLService:
         # 6. Kalkulasi Skor Gabungan (TF-IDF + Kategori + Feedback Boost)
         top_idx_candidate = scores.argsort()[-15:][::-1]
         results = []
+        
+        # Hitung statistik popularitas global untuk Bayesian Average
+        total_likes = sum(likes_count.values())
+        total_dislikes = sum(dislikes_count.values())
+        tot_global = total_likes + total_dislikes
+        C = total_likes / tot_global if tot_global > 0 else 0.5
+        m_votes = 5.0 # batas minimal jumlah voting untuk bisa dipercaya
+
         for idx in top_idx_candidate:
             j_name = self.df['Jurusan'].iloc[idx]
             j_cat = self.df['Kategori'].iloc[idx]
@@ -461,13 +492,15 @@ class MLService:
             # Konversi ke skala 0-99
             confidence = min(int(round(combined_score * 300)), 95)
             
-            # Tambahkan Feedback Popularity Boost
+            # Tambahkan Feedback Popularity Boost (Bayesian Average)
             likes = likes_count.get(j_name, 0)
             dislikes = dislikes_count.get(j_name, 0)
-            tot_fb = likes + dislikes
-            if tot_fb > 0:
-                ratio = likes / tot_fb
-                fb_boost = (ratio - 0.5) * min(tot_fb, 8)
+            v = likes + dislikes
+            if v > 0:
+                R = likes / v
+                # Rumus Bayesian Average
+                bayesian_ratio = (v / (v + m_votes)) * R + (m_votes / (v + m_votes)) * C
+                fb_boost = (bayesian_ratio - 0.5) * min(v, 8)
                 confidence = min(max(int(round(confidence + fb_boost)), 0), 99)
 
             results.append({
