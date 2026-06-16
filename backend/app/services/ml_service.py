@@ -118,6 +118,19 @@ class MLService:
                 'Kehutanan & Peternakan':          {'min': 4, 'max': 13, 'currency': 'juta/bulan'},
                 'Kedinasan & Lainnya':             {'min': 4, 'max': 18, 'currency': 'juta/bulan'},
             }
+            
+            # Coba memuat model terlatih baru jika ada di folder model/
+            self.trained_model = None
+            trained_model_path = os.path.join(BASE_DIR, 'model/trained_model.pkl')
+            if os.path.exists(trained_model_path):
+                try:
+                    logger.info("Menemukan model hasil training. Memuat model...")
+                    with open(trained_model_path, 'rb') as f:
+                        self.trained_model = pickle.load(f)
+                    logger.info("Model hasil training berhasil dimuat.")
+                except Exception as e:
+                    logger.error(f"Gagal memuat model hasil training: {e}")
+
             self.initialized = True
             logger.info("ML models dan dataset berhasil dimuat.")
         except Exception as e:
@@ -330,6 +343,13 @@ class MLService:
     def get_rekomendasi(self, liked_tags: list, disliked_tags: list = None, top_n: int = 3, history: list = None) -> list:
         self.initialize()
         
+        # Jika model terlatih hasil training tersedia, gunakan model tersebut!
+        if getattr(self, 'trained_model', None) is not None:
+            try:
+                return self._get_rekomendasi_trained(liked_tags, disliked_tags, top_n, history)
+            except Exception as e:
+                logger.error(f"Gagal menggunakan model hasil training: {e}. Menggunakan fallback TF-IDF default.")
+        
         # 1. Ambil data feedback lengkap dari Database (Like & Dislike)
         likes_count = {}
         dislikes_count = {}
@@ -465,5 +485,28 @@ class MLService:
         # Urutkan berdasarkan gabungan skor
         results.sort(key=lambda x: (-x['skor'], -x['likes'], x['jurusan']))
         return results[:top_n]
+
+    def _get_rekomendasi_trained(self, liked_tags: list, disliked_tags: list = None, top_n: int = 3, history: list = None) -> list:
+        """
+        Fungsi inferensi untuk model machine learning hasil training.
+        Silakan modifikasi fungsi ini setelah Anda melatih model baru.
+        """
+        # Validasi sederhana agar memicu fallback jika model belum di-fit secara benar
+        if not hasattr(self.trained_model, 'predict_proba') and not hasattr(self.trained_model, 'predict'):
+            raise NotImplementedError("Objek trained_model.pkl terdeteksi tetapi belum di-fit atau tidak memiliki metode predict/predict_proba.")
+
+        # SKELETON CONTOH IMPLEMENTASI:
+        # 1. Transformasikan tags menjadi representasi vector fitur
+        # user_text = ' '.join(liked_tags)
+        # user_features = self.vectorizer.transform([user_text])
+        #
+        # 2. Lakukan prediksi dengan model Anda
+        # probabilities = self.trained_model.predict_proba(user_features)
+        # ...
+        #
+        # 3. Urutkan dan ambil top_n rekomendasi jurusan teratas
+        # return list_rekomendasi_terpilih
+        
+        return []
 
 ml_service = MLService()

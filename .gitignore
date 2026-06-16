@@ -15,6 +15,7 @@ backend/app/services/__pycache__/
 backend/.pytest_cache/
 backend/instance/
 backend/*.log
+backend/data_*.csv
 backend/**/*.pyc
 backend/.env
 
