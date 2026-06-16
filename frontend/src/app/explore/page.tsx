@@ -346,7 +346,7 @@ export default function Explore() {
       </div>
 
       {/* List */}
-      <div style={{ padding: "4px 20px 40px", flex: 1, overflowY: "auto" }}>
+      <div style={{ padding: "4px 20px 100px", flex: 1, overflowY: "auto" }}>
         <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>
           {filtered.length} JURUSAN DITEMUKAN
         </div>
@@ -387,13 +387,13 @@ export default function Explore() {
             return (
               <Link key={i} href={`/detail/${encodeURIComponent(j.jurusan)}`} style={{ textDecoration: "none", color: "inherit" }} id={`major-link-${j.jurusan.replace(/\s+/g, '-').toLowerCase()}`}>
                 <div 
-                  className="glass animate-slide-up" 
+                  className="glass animate-slide-up major-card" 
                   style={{
-                    padding: "20px", 
+                    padding: "16px 18px", 
                     marginBottom: 14,
                     display: "flex", 
-                    alignItems: "center", 
-                    gap: 16, 
+                    flexDirection: "column",
+                    gap: 12, 
                     animationDelay: `${Math.min(i * 0.05, 0.5)}s`,
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     border: "1px solid var(--glass-border)",
@@ -411,135 +411,155 @@ export default function Explore() {
                     e.currentTarget.style.borderColor = "var(--glass-border)";
                   }}
                 >
+                  {/* Top info area */}
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                    <div style={{ 
+                      width: 48, 
+                      height: 48, 
+                      borderRadius: 14, 
+                      background: "linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%)", 
+                      border: "1px solid rgba(59, 130, 246, 0.1)",
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center", 
+                      fontSize: "1.35rem", 
+                      flexShrink: 0, 
+                      boxShadow: "inset 0 2px 4px rgba(255,255,255,0.6)" 
+                    }}>
+                      {ICON_MAP[j.kategori] || "📖"}
+                    </div>
+                    
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+                        <h3 style={{ 
+                          fontFamily: "var(--font-nunito)", 
+                          fontSize: "1.05rem", 
+                          fontWeight: 900, 
+                          color: "var(--navy)",
+                          margin: 0,
+                          lineHeight: 1.3,
+                          wordBreak: "break-word"
+                        }}>
+                          {j.jurusan}
+                        </h3>
+                        {matchPercentage > 0 && (
+                          <span style={{
+                            fontFamily: "var(--font-nunito)",
+                            fontSize: "0.68rem",
+                            fontWeight: 900,
+                            color: matchColor,
+                            background: matchBg,
+                            padding: "2px 6px",
+                            borderRadius: 6,
+                            border: `1px solid ${matchBorder}`,
+                            flexShrink: 0,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 2,
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.01)"
+                          }}>
+                            {matchEmoji} {matchPercentage}%
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <span style={{ 
+                          display: "inline-block", 
+                          background: "rgba(0, 0, 0, 0.03)", 
+                          border: "1px solid rgba(0, 0, 0, 0.04)", 
+                          color: "var(--muted)", 
+                          borderRadius: 99, 
+                          padding: "2px 10px", 
+                          fontSize: "0.7rem", 
+                          fontWeight: 800 
+                        }}>
+                          {j.kategori}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Career tags section */}
+                  {j.karier && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} onClick={(e) => e.stopPropagation()}>
+                      {j.karier.split(",").slice(0, 3).map((kar, idx) => {
+                        const trimmedKar = kar.trim();
+                        return (
+                          <button
+                            key={idx}
+                            id={`btn-career-badge-${i}-${idx}`}
+                            className="career-badge"
+                            style={{
+                              fontSize: "0.7rem",
+                              padding: "3px 8px",
+                              borderRadius: "8px"
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSearchQuery(trimmedKar);
+                            }}
+                          >
+                            💼 {trimmedKar}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Bottom divider and action buttons */}
                   <div style={{ 
-                    width: 52, 
-                    height: 52, 
-                    borderRadius: 16, 
-                    background: "linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%)", 
-                    border: "1px solid rgba(59, 130, 246, 0.1)",
                     display: "flex", 
                     alignItems: "center", 
-                    justifyContent: "center", 
-                    fontSize: "1.5rem", 
-                    flexShrink: 0, 
-                    boxShadow: "inset 0 2px 4px rgba(255,255,255,0.6)" 
+                    justifyContent: "space-between", 
+                    marginTop: 4, 
+                    paddingTop: 10, 
+                    borderTop: "1px solid rgba(0, 0, 0, 0.04)" 
                   }}>
-                    {ICON_MAP[j.kategori] || "📖"}
-                  </div>
-                  
-                  <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-                      <h3 style={{ 
-                        fontFamily: "var(--font-nunito)", 
-                        fontSize: "1.08rem", 
-                        fontWeight: 900, 
-                        color: "var(--navy)",
-                        margin: 0,
-                        lineHeight: 1.25,
-                        wordBreak: "break-word"
-                      }}>
-                        {j.jurusan}
-                      </h3>
-                      {matchPercentage > 0 && (
-                        <span style={{
-                          fontFamily: "var(--font-nunito)",
-                          fontSize: "0.72rem",
-                          fontWeight: 900,
-                          color: matchColor,
-                          background: matchBg,
-                          padding: "2px 8px",
-                          borderRadius: 8,
-                          border: `1px solid ${matchBorder}`,
-                          flexShrink: 0,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 3,
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.02)"
-                        }}>
-                          {matchEmoji} {matchPercentage}% Match
-                        </span>
-                      )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--blue2)", fontSize: "0.78rem", fontWeight: 800 }}>
+                      Lihat Detail <ChevronRight size={14} className="detail-arrow" />
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                      <span style={{ 
-                        display: "inline-block", 
-                        background: "rgba(0, 0, 0, 0.03)", 
-                        border: "1px solid rgba(0, 0, 0, 0.05)", 
-                        color: "var(--muted)", 
-                        borderRadius: 99, 
-                        padding: "3px 12px", 
-                        fontSize: "0.75rem", 
-                        fontWeight: 800 
-                      }}>
-                        {j.kategori}
-                      </span>
-                    </div>
-
-                    {/* Clickable Career Badges */}
-                    {j.karier && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }} onClick={(e) => e.stopPropagation()}>
-                        {j.karier.split(",").slice(0, 3).map((kar, idx) => {
-                          const trimmedKar = kar.trim();
-                          return (
-                            <button
-                              key={idx}
-                              id={`btn-career-badge-${i}-${idx}`}
-                              className="career-badge"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setSearchQuery(trimmedKar);
-                              }}
-                            >
-                              💼 {trimmedKar}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    
+                    <button
+                      id={`btn-compare-${j.jurusan.replace(/\s+/g, '-').toLowerCase()}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleCompare(j.jurusan);
+                      }}
+                      style={{
+                        background: isSelected ? "linear-gradient(135deg, var(--blue), var(--blue2))" : "rgba(0,0,0,0.03)",
+                        border: `1px solid ${isSelected ? "transparent" : "rgba(0,0,0,0.08)"}`,
+                        color: isSelected ? "white" : "var(--muted)",
+                        borderRadius: 10,
+                        padding: "6px 12px",
+                        fontSize: "0.72rem",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        boxShadow: isSelected ? "0 4px 10px rgba(59,130,246,0.15)" : "none",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = "var(--blue-light)";
+                          e.currentTarget.style.color = "var(--blue2)";
+                          e.currentTarget.style.borderColor = "var(--blue)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                          e.currentTarget.style.color = "var(--muted)";
+                          e.currentTarget.style.borderColor = "rgba(0,0,0,0.08)";
+                        }
+                      }}
+                    >
+                      {isSelected ? "✓ Terpilih" : "⚖️ Bandingkan"}
+                    </button>
                   </div>
-                  
-                  <button
-                    id={`btn-compare-${j.jurusan.replace(/\s+/g, '-').toLowerCase()}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleCompare(j.jurusan);
-                    }}
-                    style={{
-                      background: isSelected ? "linear-gradient(135deg, var(--blue), var(--blue2))" : "rgba(0,0,0,0.03)",
-                      border: `1px solid ${isSelected ? "transparent" : "rgba(0,0,0,0.08)"}`,
-                      color: isSelected ? "white" : "var(--muted)",
-                      borderRadius: 12,
-                      padding: "8px 14px",
-                      fontSize: "0.75rem",
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      marginRight: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      boxShadow: isSelected ? "0 4px 10px rgba(59,130,246,0.2)" : "none",
-                      transition: "all 0.2s"
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = "var(--blue-light)";
-                        e.currentTarget.style.color = "var(--blue2)";
-                        e.currentTarget.style.borderColor = "var(--blue)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = "rgba(0,0,0,0.03)";
-                        e.currentTarget.style.color = "var(--muted)";
-                        e.currentTarget.style.borderColor = "rgba(0,0,0,0.08)";
-                      }
-                    }}
-                  >
-                    {isSelected ? "✓ Terpilih" : "⚖️ Bandingkan"}
-                  </button>
-                  <ChevronRight style={{ color: "rgba(59, 130, 246, 0.6)", flexShrink: 0 }} size={20} />
                 </div>
               </Link>
             );

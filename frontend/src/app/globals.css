@@ -616,3 +616,55 @@ h6 {
   overflow: hidden;
   animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* ── Explore Page Card Hover Arrow Animation ── */
+.major-card .detail-arrow {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.major-card:hover .detail-arrow {
+  transform: translateX(4px);
+}
+
+/* ── Mobile Responsive Overrides ── */
+@media (max-width: 480px) {
+  /* Comparison Modal Adjustments */
+  .compare-modal-content {
+    border-radius: 20px !important;
+    max-height: 90vh !important;
+  }
+  .compare-modal-body {
+    padding: 12px 14px !important;
+  }
+  
+  /* Comparison Grid & Padding Reduction */
+  .compare-grid {
+    gap: 10px !important;
+  }
+  .compare-box {
+    padding: 10px !important;
+    border-radius: 12px !important;
+  }
+  .compare-section {
+    margin-top: 6px !important;
+    padding-top: 10px !important;
+  }
+  
+  /* Font size optimization inside modal */
+  .compare-val {
+    font-size: 0.76rem !important;
+  }
+  .compare-val.bold {
+    font-size: 0.88rem !important;
+  }
+  .compare-section-title {
+    font-size: 0.68rem !important;
+    margin-bottom: 6px !important;
+  }
+  
+  /* Skill badges inside compare box */
+  .skill-badge-common, .skill-badge-unique {
+    padding: 3px 6px !important;
+    font-size: 0.68rem !important;
+    border-radius: 6px !important;
+  }
+}
