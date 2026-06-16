@@ -16,5 +16,5 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 5000
 
-# Entry point untuk menjalankan Flask
-CMD ["python", "run.py"]
+# Entry point untuk menjalankan Flask dan migrasi database otomatis
+CMD flask db upgrade && python run.py
