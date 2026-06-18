@@ -1,7 +1,7 @@
 import logging
-from flask import Flask
+from logging.handlers import RotatingFileHandler
+from flask import Flask, request, make_response
 from flask_cors import CORS
-from flasgger import Swagger
 from flask_caching import Cache
 from flask_migrate import Migrate
 from flask_limiter import Limiter
@@ -18,48 +18,72 @@ limiter = Limiter(
     strategy="fixed-window"
 )
 
+
 def setup_logging():
+    """Configure logging with rotation to prevent unbounded log growth."""
+    formatter = logging.Formatter(
+        '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    )
+
+    # Rotating file handler: max 5MB per file, keep 3 backups
+    file_handler = RotatingFileHandler(
+        "app.log", maxBytes=5 * 1024 * 1024, backupCount=3
+    )
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.INFO)
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(logging.INFO)
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-        handlers=[
-            logging.FileHandler("app.log"),
-            logging.StreamHandler()
-        ]
+        handlers=[file_handler, console_handler]
     )
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Register ProxyFix middleware to get real user IP behind reverse proxy (e.g. Nginx, Cloudflare)
+    # Register ProxyFix middleware to get real user IP behind reverse proxy
     from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     setup_logging()
-    
-    # Init extensions with app
+
+    # Init core extensions
     db.init_app(app)
-    CORS(app)
-    Swagger(app)
+
+    # ── CORS — restrict to configured origins ──
+    allowed_origins = app.config.get('ALLOWED_ORIGINS')
+    CORS(app, origins=allowed_origins, supports_credentials=True)
+
+    # ── Swagger — only enable in development ──
+    if app.config.get('DEBUG', False):
+        from flasgger import Swagger
+        Swagger(app)
+
     cache.init_app(app)
     migrate.init_app(app, db)
-    
-    # Configure limiter storage from config
     limiter.init_app(app)
-    if hasattr(app.config, 'REDIS_URL') and app.config['REDIS_URL']:
-        try:
-            # We must configure limiter before it's used if we want redis, but init_app handles it if we pass storage_uri to Limiter init.
-            # Actually, simpler to just set it via Limiter constructor, let's update it.
-            pass
-        except:
-            pass
+
+    # ── Security Headers Middleware ──
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        if not app.config.get('DEBUG', False):
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
 
     with app.app_context():
-        # Buat tabel jika belum ada (berguna jika tidak pakai Flask-Migrate)
         db.create_all()
 
-    # Daftarkan blueprints
+    # Register blueprints
     from app.routes.api import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 

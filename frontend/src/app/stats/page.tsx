@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, ThumbsUp, ThumbsDown, BarChart2 } from "lucide-react";
+import { ArrowLeft, Loader2, ThumbsUp, ThumbsDown, BarChart2, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface FeedbackDetail {
@@ -10,9 +10,9 @@ interface FeedbackDetail {
   nama: string;
   liked_tags: string;
   hasil: string[];
-  rating: number;
+  rating: number | null;
   komentar: string;
-  web_rating: number;
+  web_rating: number | null;
   web_komentar: string;
   timestamp: string | null;
 }
@@ -33,24 +33,106 @@ export default function StatsPage() {
   const router = useRouter();
   const [data, setData] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [keySubmitted, setKeySubmitted] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/stats")
-      .then(r => r.json())
+  const fetchStats = (key: string) => {
+    setLoading(true);
+    setAuthError(false);
+    fetch("/api/stats", {
+      headers: { 'X-Admin-Key': key }
+    })
+      .then(r => {
+        if (r.status === 401) {
+          setAuthError(true);
+          setLoading(false);
+          return null;
+        }
+        return r.json();
+      })
       .then(d => {
-        setData(d);
+        if (d) {
+          setData(d);
+          setKeySubmitted(true);
+        }
         setLoading(false);
       })
       .catch(e => {
         console.error(e);
         setLoading(false);
       });
-  }, []);
+  };
+
+  const handleKeySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (apiKey.trim()) fetchStats(apiKey.trim());
+  };
+
+  // Show auth form if not yet submitted
+  if (!keySubmitted) {
+    return (
+      <div className="container" style={{ padding: "40px 20px" }}>
+        <button
+          id="btn-back-stats"
+          onClick={() => router.push("/")}
+          aria-label="Kembali ke halaman utama"
+          style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "var(--muted)", fontWeight: 700, cursor: "pointer", marginBottom: 24 }}
+        >
+          <ArrowLeft size={18} /> Kembali
+        </button>
+
+        <div className="glass-panel" style={{ padding: "40px 24px", textAlign: "center", maxWidth: 440, margin: "0 auto" }}>
+          <ShieldAlert size={48} color="var(--blue)" style={{ marginBottom: 16 }} />
+          <h1 style={{ fontFamily: "var(--font-nunito)", fontSize: "1.5rem", fontWeight: 900, color: "var(--navy)", marginBottom: 8 }}>
+            Dashboard Admin
+          </h1>
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: 24 }}>
+            Masukkan Admin API Key untuk mengakses statistik.
+          </p>
+          <form onSubmit={handleKeySubmit}>
+            <input
+              id="input-admin-key"
+              type="password"
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              placeholder="Admin API Key"
+              aria-label="Admin API Key"
+              style={{
+                width: "100%", padding: "14px 18px", border: "2px solid #E2E8F0",
+                borderRadius: 14, fontSize: "1rem", marginBottom: 12,
+                fontFamily: "var(--font-nunito-sans)",
+              }}
+            />
+            {authError && (
+              <p style={{ color: "var(--red)", fontSize: "0.85rem", marginBottom: 12, fontWeight: 700 }}>
+                ❌ API Key salah. Coba lagi.
+              </p>
+            )}
+            <button
+              id="btn-submit-key"
+              type="submit"
+              style={{
+                width: "100%", padding: "14px", background: "linear-gradient(135deg, var(--blue), var(--purple))",
+                color: "white", border: "none", borderRadius: 14,
+                fontFamily: "var(--font-nunito)", fontWeight: 900, fontSize: "1rem",
+                cursor: "pointer", boxShadow: "0 8px 24px rgba(59,130,246,0.3)",
+              }}
+            >
+              {loading ? <Loader2 size={20} className="animate-spin" /> : "Masuk"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ padding: "40px 20px" }}>
       <button
+        id="btn-back-stats-main"
         onClick={() => router.push("/")}
+        aria-label="Kembali ke halaman utama"
         style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "var(--muted)", fontWeight: 700, cursor: "pointer", marginBottom: 24 }}
       >
         <ArrowLeft size={18} /> Kembali
@@ -134,8 +216,8 @@ export default function StatsPage() {
                       <div>
                         <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>1. Rekomendasi Jurusan</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
-                          <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.rating}</span>
-                          <span style={{ color: "var(--yellow2)" }}>{"⭐".repeat(item.rating)}</span>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.rating ?? '-'}</span>
+                          <span style={{ color: "var(--yellow2)" }}>{item.rating ? "⭐".repeat(Math.min(Math.max(item.rating, 0), 5)) : ''}</span>
                         </div>
                         {item.komentar ? (
                           <p style={{ fontSize: "0.8rem", color: "var(--text)", margin: 0, fontStyle: "italic" }}>&ldquo;{item.komentar}&rdquo;</p>
@@ -152,8 +234,8 @@ export default function StatsPage() {
                       <div style={{ borderLeft: "1px dashed #E2E8F0", paddingLeft: 16 }}>
                         <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", marginBottom: 4 }}>2. Penggunaan Website</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
-                          <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.web_rating}</span>
-                          <span style={{ color: "var(--yellow2)" }}>{"⭐".repeat(item.web_rating)}</span>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>{item.web_rating ?? '-'}</span>
+                          <span style={{ color: "var(--yellow2)" }}>{item.web_rating ? "⭐".repeat(Math.min(Math.max(item.web_rating, 0), 5)) : ''}</span>
                         </div>
                         {item.web_komentar ? (
                           <p style={{ fontSize: "0.8rem", color: "var(--text)", margin: 0, fontStyle: "italic" }}>&ldquo;{item.web_komentar}&rdquo;</p>

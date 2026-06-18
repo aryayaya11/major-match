@@ -9,23 +9,49 @@ from app.models import ItemFeedback, db
 
 logger = logging.getLogger(__name__)
 
+# ══════════════════════════════════════════════════════════════
+# CONSTANTS (extracted from magic numbers)
+# ══════════════════════════════════════════════════════════════
+
+# Scoring weights
+TFIDF_WEIGHT = 0.6
+CATEGORY_WEIGHT = 0.4
+SCORE_MULTIPLIER = 300
+MAX_CONFIDENCE = 95
+
+# Bayesian feedback
+BAYESIAN_MIN_VOTES = 5.0    # Minimum votes threshold for Bayesian average
+BAYESIAN_MAX_VOTES_CAP = 8  # Cap on vote influence
+
+# Active Learning
+EPSILON_EXPLORATION = 0.15  # Probability of random exploration
+PHASE2_BOOST = 5.0          # Boost for matching rumpun in Phase 2
+PHASE2_PENALTY = -2.0       # Penalty for non-matching rumpun in Phase 2
+
+# Card selection
+TOP_CANDIDATES_COUNT = 15   # Number of candidate majors for scoring
+
+# ══════════════════════════════════════════════════════════════
+# CATEGORY KEYWORDS — Balanced counts across categories
+# ══════════════════════════════════════════════════════════════
+
 CATEGORY_KEYWORDS = {
-    'Komputer & Informatika': ['komputer', 'informatika', 'teknologi', 'pemrograman', 'software', 'data', 'keamanan siber', 'jaringan', 'ai', 'robotika', 'algoritma'],
+    'Komputer & Informatika': ['komputer', 'informatika', 'teknologi', 'pemrograman', 'software', 'data', 'keamanan siber', 'jaringan', 'ai', 'robotika'],
     'Matematika & IPA': ['matematika', 'sains', 'fisika', 'kimia', 'biologi', 'statistik', 'analisis data', 'laboratorium', 'penelitian', 'riset'],
     'Ekonomi & Bisnis': ['bisnis', 'ekonomi', 'manajemen', 'keuangan', 'akuntansi', 'pemasaran', 'wirausaha', 'logistik', 'operasional', 'audit'],
-    'Ilmu Teknik & Industri': ['teknik', 'manufaktur', 'sistem', 'infrastruktur', 'industri', 'mesin', 'elektro', 'robotika'],
-    'Kesehatan & Ilmu Keolahragaan': ['kesehatan', 'medis', 'kedokteran', 'farmasi', 'keperawatan', 'klinis', 'gizi', 'kesehatan masyarakat', 'olahraga'],
-    'Ilmu Sosial, Hukum & Politik': ['sosial', 'politik', 'hukum', 'kebijakan', 'pemerintahan', 'administrasi negara', 'ilmu politik', 'komunikasi', 'hubungan masyarakat'],
-    'Ilmu Pendidikan & Agama Islam': ['pendidikan', 'keguruan', 'pengajaran', 'pgsd', 'bimbingan konseling', 'konseling'],
-    'Seni, Desain & Musik': ['seni', 'desain', 'musik', 'kreatif', 'film', 'broadcasting', 'desain grafis', 'ui/ux', 'visual', 'ilustrasi', '3d', 'seni rupa', 'seni musik', 'seni pertunjukan', 'desain komunikasi visual'],
-    'Sipil & Bangunan': ['teknik sipil', 'arsitektur', 'konstruksi', 'bangunan', 'infrastruktur'],
-    'Pertanian': ['pertanian', 'lingkungan', 'ekologi', 'ekosistem'],
-    'Kelautan & Perikanan': ['kelautan', 'perikanan', 'ekosistem', 'lingkungan'],
-    'Filsafat & Ilmu Budaya': ['filsafat', 'sejarah', 'budaya', 'sastra', 'humaniora', 'teologi', 'ilmu budaya'],
-    'Geografi & Kebumian': ['geografi', 'geologi', 'lingkungan', 'ekologi'],
-    'Pariwisata & Perhotelan': ['pariwisata', 'perhotelan', 'kuliner', 'hospitality', 'tata boga', 'hubungan masyarakat', 'event'],
-    'Kehutanan & Peternakan': ['kehutanan', 'peternakan', 'lingkungan', 'ekologi', 'hewan'],
-    'Kedinasan & Lainnya': ['pemerintahan', 'birokrasi', 'kedinasan', 'administrasi negara']
+    'Ilmu Teknik & Industri': ['teknik', 'manufaktur', 'sistem', 'infrastruktur', 'industri', 'mesin', 'elektro', 'robotika', 'otomasi', 'energi'],
+    'Kesehatan & Ilmu Keolahragaan': ['kesehatan', 'medis', 'kedokteran', 'farmasi', 'keperawatan', 'klinis', 'gizi', 'kesehatan masyarakat', 'olahraga', 'terapi'],
+    'Ilmu Sosial, Hukum & Politik': ['sosial', 'politik', 'hukum', 'kebijakan', 'pemerintahan', 'administrasi negara', 'ilmu politik', 'komunikasi', 'hubungan masyarakat', 'diplomasi'],
+    'Ilmu Pendidikan & Agama Islam': ['pendidikan', 'keguruan', 'pengajaran', 'pgsd', 'bimbingan konseling', 'konseling', 'kurikulum', 'pedagogi', 'didaktik', 'agama'],
+    'Seni, Desain & Musik': ['seni', 'desain', 'musik', 'kreatif', 'film', 'broadcasting', 'desain grafis', 'visual', 'ilustrasi', 'pertunjukan'],
+    'Sipil & Bangunan': ['teknik sipil', 'arsitektur', 'konstruksi', 'bangunan', 'infrastruktur', 'tata kota', 'perencanaan wilayah', 'struktur', 'geodesi', 'transportasi'],
+    'Pertanian': ['pertanian', 'lingkungan', 'ekologi', 'ekosistem', 'agribisnis', 'hortikultura', 'tanaman', 'pangan', 'agroteknologi', 'perkebunan'],
+    'Kelautan & Perikanan': ['kelautan', 'perikanan', 'ekosistem laut', 'oseanografi', 'budidaya', 'akuakultur', 'maritim', 'pesisir', 'biota laut', 'navigasi'],
+    'Filsafat & Ilmu Budaya': ['filsafat', 'sejarah', 'budaya', 'sastra', 'humaniora', 'teologi', 'ilmu budaya', 'antropologi', 'arkeologi', 'linguistik'],
+    'Geografi & Kebumian': ['geografi', 'geologi', 'lingkungan', 'ekologi', 'meteorologi', 'vulkanologi', 'kartografi', 'penginderaan jauh', 'iklim', 'bumi'],
+    'Pariwisata & Perhotelan': ['pariwisata', 'perhotelan', 'kuliner', 'hospitality', 'tata boga', 'event', 'destinasi', 'travel', 'akomodasi', 'wisata'],
+    'Kehutanan & Peternakan': ['kehutanan', 'peternakan', 'satwa', 'konservasi', 'hewan', 'ternak', 'veteriner', 'hutan', 'kayu', 'fauna'],
+    'Kedinasan & Lainnya': ['pemerintahan', 'birokrasi', 'kedinasan', 'administrasi negara', 'militer', 'intelijen', 'kepolisian', 'bea cukai', 'aparatur', 'pelayanan publik']
 }
 
 RUMPUN_MAP = {
@@ -119,7 +145,7 @@ class MLService:
                 'Kedinasan & Lainnya':             {'min': 4, 'max': 18, 'currency': 'juta/bulan'},
             }
             
-            # Coba memuat model terlatih baru jika ada di folder model/
+            # Try loading a trained ML model if available
             self.trained_model = None
             trained_model_path = os.path.join(BASE_DIR, 'model/trained_model.pkl')
             if os.path.exists(trained_model_path):
@@ -164,7 +190,7 @@ class MLService:
         for t in disliked_tags:
             tag_weights[t] = tag_weights.get(t, 0) - 0.5
 
-        rumpun_scores = {r: 0.0 for r in RUMPUN_MAP.values()}
+        rumpun_scores = {r: 0.0 for r in set(RUMPUN_MAP.values())}
         for cat, keywords in CATEGORY_KEYWORDS.items():
             rumpun = RUMPUN_MAP.get(cat)
             if not rumpun:
@@ -173,7 +199,8 @@ class MLService:
                 if w > 0 and any(kw in t.lower() for kw in keywords):
                     rumpun_scores[rumpun] += w
 
-        best_rumpun = max(rumpun_scores, key=rumpun_scores.get)
+        # Explicit zero-check: only return best rumpun if it has a positive score
+        best_rumpun = max(rumpun_scores, key=lambda k: rumpun_scores[k])
         if rumpun_scores[best_rumpun] > 0:
             return best_rumpun
         
@@ -201,33 +228,30 @@ class MLService:
                 else:
                     disliked_tags.extend(card.get('tags', []))
 
-        phase1_len = limit - 10
+        # Determine phase boundary based on actual opening card count
+        opening_count = len(self.OPENING_IDS)  # 8
+        phase1_len = max(limit - 10, opening_count)  # At least cover opening cards
         is_phase2 = len(history) >= phase1_len
         top_rumpun = None
         if is_phase2:
             top_rumpun = self._get_top_rumpun(history[:phase1_len])
 
-        # Cold start: Diversifikasi penyajian kartu pembuka
+        # Cold start: Diversify opening card presentation
         if not is_phase2 and not liked_tags and not disliked_tags:
             remaining_openings = [oid for oid in self.OPENING_IDS if oid not in shown]
             if remaining_openings:
                 shown_groups = [OPENING_GROUPS.get(oid) for oid in shown if oid in OPENING_GROUPS]
-                # Urutkan berdasarkan kemunculan grup terkecil + noise acak kecil agar dinamis
                 remaining_openings.sort(key=lambda oid: shown_groups.count(OPENING_GROUPS.get(oid)) + random.uniform(0, 0.1))
                 return self.CARD_MAP.get(remaining_openings[0])
 
-        # MACHINE LEARNING MODE: Active Learning (Information Gain) + Epsilon-Greedy Exploration
-        # 15% kesempatan (epsilon = 0.15) untuk melakukan eksplorasi rumpun minat baru yang belum ditanyakan
-        epsilon = 0.15
-        if len(history) > 0 and random.random() < epsilon:
-            # Cari rumpun minat yang sudah pernah ditampilkan
+        # ACTIVE LEARNING: Information Gain + Epsilon-Greedy Exploration
+        if len(history) > 0 and random.random() < EPSILON_EXPLORATION:
             shown_rumpuns = set()
             for sw in history:
                 card = self.CARD_MAP.get(sw['id'])
                 if card:
                     shown_rumpuns.update(self.get_card_rumpuns(card))
             
-            # Cari kartu kuis tersisa yang memuat rumpun minat yang BELUM pernah ditampilkan
             explorer_candidates = []
             for cid, card in self.CARD_MAP.items():
                 if cid in shown:
@@ -240,10 +264,9 @@ class MLService:
                 logger.info("Epsilon-Greedy: Melakukan eksplorasi kartu dengan memilih rumpun minat baru.")
                 return random.choice(explorer_candidates)
 
-        # 1. Dapatkan top 10 prediksi jurusan saat ini
+        # Information Gain card selection
         current_recs = self.get_rekomendasi(liked_tags, disliked_tags=disliked_tags, top_n=10)
         
-        # 2. Ambil konteks skills dan kategori dari ke-10 jurusan terbaik
         top_contexts = []
         for r in current_recs:
             ctx = f"{r['kategori']} {r['skills']} {r['jurusan']}".lower()
@@ -252,40 +275,33 @@ class MLService:
         best_card = None
         best_score = -9999.0
 
-        # 3. Evaluasi setiap kartu yang belum dimunculkan
         for cid, card in self.CARD_MAP.items():
             if cid in shown:
                 continue
 
             card_tags = [t.lower() for t in card.get('tags', [])]
             
-            # Hitung berapa banyak jurusan dari top 10 yang mengandung setidaknya satu tag dari kartu ini
             match_count = 0
             for ctx in top_contexts:
                 if any(tag in ctx for tag in card_tags):
                     match_count += 1
             
-            # P = Probabilitas kartu ini cocok dengan sekumpulan top rekomendasi (dari 0.0 sampai 1.0)
             p = match_count / max(len(top_contexts), 1)
             
-            # Information Gain maksimal jika P mendekati 0.5 (membelah pilihan menjadi dua)
-            # Kita gunakan negative absolute error dari 0.5. Skor terbaik adalah 0 (saat P=0.5).
+            # Information Gain: maximum when P ≈ 0.5
             info_gain_score = -abs(p - 0.5)
-            
-            # Berikan sedikit variasi acak agar tidak monoton jika skor seri
             info_gain_score += random.uniform(0, 0.05)
             
-            # Jika P = 0 (tidak relevan sama sekali dengan top 10), beri penalti berat
             if match_count == 0:
                 info_gain_score -= 1.0
 
-            # Boost / Penalty based on Phase 2 top rumpun
+            # Phase 2 boost/penalty (balanced values)
             if is_phase2 and top_rumpun:
                 card_rumpuns = self.get_card_rumpuns(card)
                 if top_rumpun in card_rumpuns:
-                    info_gain_score += 10.0
+                    info_gain_score += PHASE2_BOOST
                 else:
-                    info_gain_score -= 5.0
+                    info_gain_score += PHASE2_PENALTY
 
             if info_gain_score > best_score:
                 best_score = info_gain_score
@@ -294,7 +310,7 @@ class MLService:
         if best_card:
             return best_card
 
-        # Fallback terakhir
+        # Last-resort fallback
         all_ids = list(self.CARD_MAP.keys())
         random.shuffle(all_ids)
         for cid in all_ids:
@@ -310,7 +326,6 @@ class MLService:
         j_text = str(skills).lower() + " " + str(jurusan).lower()
         base_alasan = ""
         
-        # Coba cari kartu yang disukai dari history yang relevan dengan jurusan/skills ini
         if history:
             liked_cards_matching = []
             for sw in history:
@@ -318,13 +333,11 @@ class MLService:
                     card = self.CARD_MAP.get(sw['id'])
                     if card:
                         card_tags = card.get('tags', [])
-                        # Cari tag kartu yang ada di teks jurusan/skills
                         matching_tags = [t for t in card_tags if t.lower() in j_text]
                         if matching_tags:
                             liked_cards_matching.append((card, matching_tags))
             
             if liked_cards_matching:
-                # Pilih kartu dengan kecocokan terbanyak
                 liked_cards_matching.sort(key=lambda x: len(x[1]), reverse=True)
                 best_card, matching_tags = liked_cards_matching[0]
                 card_text = best_card.get('text', '')
@@ -348,7 +361,6 @@ class MLService:
                     matching_skills.append(s)
                     break
 
-        # Remove duplicates preserving order
         seen = set()
         unique_matching_skills = []
         for s in matching_skills:
@@ -363,17 +375,41 @@ class MLService:
 
         return base_alasan
 
+    def _enforce_category_diversity(self, results: list, top_n: int = 3) -> list:
+        """Enforce category diversity: at most 2 results from the same category in top-3."""
+        if len(results) <= top_n:
+            return results
+
+        selected = []
+        category_count = {}
+        remaining = []
+
+        for r in results:
+            cat = r['kategori']
+            current_count = category_count.get(cat, 0)
+            if len(selected) < top_n and current_count < 2:
+                selected.append(r)
+                category_count[cat] = current_count + 1
+            else:
+                remaining.append(r)
+
+        # Fill remaining slots if diversity filter was too strict
+        while len(selected) < top_n and remaining:
+            selected.append(remaining.pop(0))
+
+        return selected
+
     def get_rekomendasi(self, liked_tags: list, disliked_tags: list = None, top_n: int = 3, history: list = None) -> list:
         self.initialize()
         
-        # Jika model terlatih hasil training tersedia, gunakan model tersebut!
+        # If a trained ML model is available, use it
         if getattr(self, 'trained_model', None) is not None:
             try:
                 return self._get_rekomendasi_trained(liked_tags, disliked_tags, top_n, history)
             except Exception as e:
                 logger.error(f"Gagal menggunakan model hasil training: {e}. Menggunakan fallback TF-IDF default.")
         
-        # 1. Ambil data feedback lengkap dari Database (Like & Dislike) - Caching 60 detik untuk performa kuis
+        # 1. Fetch community feedback data (cached 60s)
         likes_count = {}
         dislikes_count = {}
         
@@ -382,7 +418,7 @@ class MLService:
         try:
             cached_fb = cache.get("popularity_feedback_counts")
         except Exception as e:
-            logger.error(f"Error reading popularity counts from cache: {e}")
+            logger.warning(f"Cache read error for popularity counts (non-fatal): {e}")
             
         if cached_fb is not None:
             likes_count, dislikes_count = cached_fb
@@ -405,11 +441,11 @@ class MLService:
                 try:
                     cache.set("popularity_feedback_counts", (likes_count, dislikes_count), timeout=60)
                 except Exception as e:
-                    logger.error(f"Error writing popularity counts to cache: {e}")
+                    logger.warning(f"Cache write error for popularity counts (non-fatal): {e}")
             except Exception as e:
                 logger.error(f"Error fetching feedback counts from DB: {e}")
 
-        # Jika tidak ada tag, lakukan random selection (fallback)
+        # If no tags, do random selection (fallback)
         if not liked_tags:
             idx_samples = random.sample(range(len(self.df)), min(top_n, len(self.df)))
             results = []
@@ -430,7 +466,7 @@ class MLService:
             results.sort(key=lambda x: (-x['skor'], -x['likes'], x['jurusan']))
             return results
 
-        # 2. Hitung Net-Weighting untuk setiap tag
+        # 2. Net-Weighting for each tag
         tag_weights = {}
         for t in liked_tags:
             tag_weights[t] = tag_weights.get(t, 0) + 1.0
@@ -438,7 +474,7 @@ class MLService:
             for t in disliked_tags:
                 tag_weights[t] = tag_weights.get(t, 0) - 0.5
 
-        # 3. Bangun Vektor dengan Rocchio bersumber dari pembobotan bersih
+        # 3. Build Rocchio vector from net-weighted tags
         pos_terms = []
         for t, w in tag_weights.items():
             if w > 0:
@@ -462,11 +498,10 @@ class MLService:
         else:
             user_vec = pos_vec
 
-        # 4. Hitung Cosine Similarity TF-IDF
-        from sklearn.metrics.pairwise import cosine_similarity
+        # 4. Cosine Similarity (TF-IDF)
         scores = cosine_similarity(user_vec, self.tfidf_matrix).flatten()
         
-        # 5. Hitung Profil Kategori Pengguna (Category Profiling)
+        # 5. Category Profiling
         user_cat_profile = {}
         for cat, keywords in CATEGORY_KEYWORDS.items():
             match_score = 0.0
@@ -476,47 +511,39 @@ class MLService:
             if match_score > 0:
                 user_cat_profile[cat] = match_score
         
-        # Normalisasi profil kategori
+        # Normalize category profile
         total_cat_weight = sum(user_cat_profile.values())
         if total_cat_weight > 0:
             user_cat_profile = {c: w / total_cat_weight for c, w in user_cat_profile.items()}
 
-        # 6. Kalkulasi Skor Gabungan (TF-IDF + Kategori + Feedback Boost)
-        top_idx_candidate = scores.argsort()[-15:][::-1]
+        # 6. Combined Score (TF-IDF + Category + Feedback Boost)
+        top_idx_candidate = scores.argsort()[-TOP_CANDIDATES_COUNT:][::-1]
         results = []
         
-        # Hitung statistik popularitas global untuk Bayesian Average
+        # Bayesian Average statistics
         total_likes = sum(likes_count.values())
         total_dislikes = sum(dislikes_count.values())
         tot_global = total_likes + total_dislikes
         C = total_likes / tot_global if tot_global > 0 else 0.5
-        m_votes = 5.0 # batas minimal jumlah voting untuk bisa dipercaya
 
         for idx in top_idx_candidate:
             j_name = self.df['Jurusan'].iloc[idx]
             j_cat = self.df['Kategori'].iloc[idx]
             
-            # Skor TF-IDF
             tfidf_score = float(scores[idx])
-            
-            # Skor kesesuaian kategori
             cat_score = user_cat_profile.get(j_cat, 0.0)
             
-            # Kombinasi (TF-IDF 60%, Kategori 40%)
-            combined_score = (0.6 * tfidf_score) + (0.4 * cat_score)
+            combined_score = (TFIDF_WEIGHT * tfidf_score) + (CATEGORY_WEIGHT * cat_score)
+            confidence = min(int(round(combined_score * SCORE_MULTIPLIER)), MAX_CONFIDENCE)
             
-            # Konversi ke skala 0-99
-            confidence = min(int(round(combined_score * 300)), 95)
-            
-            # Tambahkan Feedback Popularity Boost (Bayesian Average)
+            # Bayesian Average Feedback Boost
             likes = likes_count.get(j_name, 0)
             dislikes = dislikes_count.get(j_name, 0)
             v = likes + dislikes
             if v > 0:
                 R = likes / v
-                # Rumus Bayesian Average
-                bayesian_ratio = (v / (v + m_votes)) * R + (m_votes / (v + m_votes)) * C
-                fb_boost = (bayesian_ratio - 0.5) * min(v, 8)
+                bayesian_ratio = (v / (v + BAYESIAN_MIN_VOTES)) * R + (BAYESIAN_MIN_VOTES / (v + BAYESIAN_MIN_VOTES)) * C
+                fb_boost = (bayesian_ratio - 0.5) * min(v, BAYESIAN_MAX_VOTES_CAP)
                 confidence = min(max(int(round(confidence + fb_boost)), 0), 99)
 
             results.append({
@@ -531,8 +558,12 @@ class MLService:
                 'alasan':    self._build_alasan(j_name, self.df['Skills'].iloc[idx], liked_tags, history=history)
             })
 
-        # Urutkan berdasarkan gabungan skor
+        # Sort by combined score
         results.sort(key=lambda x: (-x['skor'], -x['likes'], x['jurusan']))
+        
+        # Enforce category diversity in top results
+        results = self._enforce_category_diversity(results, top_n)
+        
         return results[:top_n]
 
     def _get_rekomendasi_trained(self, liked_tags: list, disliked_tags: list = None, top_n: int = 3, history: list = None) -> list:
@@ -540,22 +571,9 @@ class MLService:
         Fungsi inferensi untuk model machine learning hasil training.
         Silakan modifikasi fungsi ini setelah Anda melatih model baru.
         """
-        # Validasi sederhana agar memicu fallback jika model belum di-fit secara benar
         if not hasattr(self.trained_model, 'predict_proba') and not hasattr(self.trained_model, 'predict'):
             raise NotImplementedError("Objek trained_model.pkl terdeteksi tetapi belum di-fit atau tidak memiliki metode predict/predict_proba.")
 
-        # SKELETON CONTOH IMPLEMENTASI:
-        # 1. Transformasikan tags menjadi representasi vector fitur
-        # user_text = ' '.join(liked_tags)
-        # user_features = self.vectorizer.transform([user_text])
-        #
-        # 2. Lakukan prediksi dengan model Anda
-        # probabilities = self.trained_model.predict_proba(user_features)
-        # ...
-        #
-        # 3. Urutkan dan ambil top_n rekomendasi jurusan teratas
-        # return list_rekomendasi_terpilih
-        
         return []
 
 ml_service = MLService()

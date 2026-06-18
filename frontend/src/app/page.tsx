@@ -5,7 +5,7 @@ import SwipeCard, { CardData } from "@/components/SwipeCard";
 import { Loader2, CheckCircle2, Search, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-type ScreenState = "landing" | "swipe" | "loading" | "result";
+type ScreenState = "landing" | "onboarding" | "swipe" | "loading" | "result";
 
 interface SwipeResult {
   id: string;
@@ -52,6 +52,25 @@ interface QuizSessionState {
   transitionRumpunId?: string;
   webRating?: number;
   webComment?: string;
+  // Beta testing fields
+  onboardingData?: OnboardingData;
+  questionTimings?: Record<string, number>;
+  betaFeedbackSent?: boolean;
+}
+
+interface OnboardingData {
+  gender: string;
+  kelas: string;
+  jurusan_sma: string;
+  provinsi: string;
+  tipe_sekolah: string;
+  jurusan_impian: string;
+  jurusan_diminati_1: string;
+  jurusan_diminati_2: string;
+  jurusan_diminati_3: string;
+  tingkat_keyakinan: number;
+  sudah_riset: boolean;
+  sumber_info: string[];
 }
 
 interface InterestCategory {
@@ -60,6 +79,13 @@ interface InterestCategory {
   icon: string;
   color: string;
   percentage: number;
+}
+
+// Per-jurusan feedback
+interface PerJurusanFeedback {
+  rating_tertarik: number;
+  pertimbangkan: boolean | null;
+  sudah_tahu: boolean | null;
 }
 
 const calculateInterestProfile = (tags: string[]): InterestCategory[] => {
@@ -175,6 +201,41 @@ export default function Home() {
   const [compareData, setCompareData] = useState<DetailJurusanData[]>([]);
   const [isCompareLoading, setIsCompareLoading] = useState(false);
 
+  // ── Beta Testing States ──
+  const [onboardingStep, setOnboardingStep] = useState(0); // 0=demografi, 1=ground truth
+  const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    gender: '', kelas: '', jurusan_sma: '', provinsi: '', tipe_sekolah: '',
+    jurusan_impian: '', jurusan_diminati_1: '', jurusan_diminati_2: '', jurusan_diminati_3: '',
+    tingkat_keyakinan: 0, sudah_riset: false, sumber_info: []
+  });
+  const [jurusanList, setJurusanList] = useState<string[]>([]);
+  const [jurusanSearch, setJurusanSearch] = useState('');
+  const [jurusanSearchField, setJurusanSearchField] = useState<string>('');
+  const [cardShownTimestamp, setCardShownTimestamp] = useState<number>(Date.now());
+  const [questionTimings, setQuestionTimings] = useState<{qid: string, response: string, time_ms: number, order: number, phase: string}[]>([]);
+  const [quizStartTimestamp, setQuizStartTimestamp] = useState<number>(0);
+  
+  // Per-jurusan beta feedback
+  const [perJurusanFeedback, setPerJurusanFeedback] = useState<Record<string, PerJurusanFeedback>>({});
+  
+  // Session evaluation
+  const [evalKesesuaian, setEvalKesesuaian] = useState(0);
+  const [evalKepuasan, setEvalKepuasan] = useState(0);
+  const [evalWawasan, setEvalWawasan] = useState(0);
+  const [evalNps, setEvalNps] = useState(-1);
+  const [evalJurusanSeharusnya, setEvalJurusanSeharusnya] = useState('');
+  const [evalKomentar, setEvalKomentar] = useState('');
+  const [betaFeedbackSent, setBetaFeedbackSent] = useState(false);
+  const [betaFeedbackStep, setBetaFeedbackStep] = useState(0); // 0=per-jurusan, 1=overall
+
+  // Fetch jurusan list for autocomplete
+  useEffect(() => {
+    fetch('/api/jurusan-list')
+      .then(res => res.json())
+      .then(data => setJurusanList(data.jurusan || []))
+      .catch(() => {});
+  }, []);
+
   const toggleCompare = (major: string) => {
     setCompareList(prev => {
       if (prev.includes(major)) {
@@ -238,6 +299,7 @@ export default function Home() {
             if (state.isLowConfidence !== undefined) setIsLowConfidence(state.isLowConfidence);
             if (state.swipeStatus) setSwipeStatus(state.swipeStatus);
             if (state.total) setTotal(state.total);
+            if (state.betaFeedbackSent) setBetaFeedbackSent(state.betaFeedbackSent);
           } else if (state.screen === "swipe" && state.history && state.history.length > 0) {
             // Incomplete session found. Hold it to show the resume banner.
             setPendingSession(state);
@@ -270,7 +332,9 @@ export default function Home() {
         transitionRumpun,
         transitionRumpunId,
         webRating,
-        webComment
+        webComment,
+        onboardingData,
+        betaFeedbackSent,
       };
       localStorage.setItem("major_match_session", JSON.stringify(state));
     } else {
@@ -279,7 +343,7 @@ export default function Home() {
         localStorage.removeItem("major_match_session");
       }
     }
-  }, [userName, history, likedTags, dislikedTags, results, screen, sessionId, isLowConfidence, swipeStatus, total, transitionModalOpen, transitionRumpun, transitionRumpunId, webRating, webComment, pendingSession]);
+  }, [userName, history, likedTags, dislikedTags, results, screen, sessionId, isLowConfidence, swipeStatus, total, transitionModalOpen, transitionRumpun, transitionRumpunId, webRating, webComment, pendingSession, onboardingData, betaFeedbackSent]);
 
   const resumeSession = () => {
     if (!pendingSession) return;
@@ -293,6 +357,7 @@ export default function Home() {
     setTransitionRumpunId(pendingSession.transitionRumpunId || "");
     setWebRating(pendingSession.webRating || 0);
     setWebComment(pendingSession.webComment || "");
+    if (pendingSession.onboardingData) setOnboardingData(pendingSession.onboardingData);
     setScreen("swipe");
     setPendingSession(null);
     fetchNextCard(pendingSession.history || [], pendingSession.likedTags || [], pendingSession.dislikedTags || [], pendingSession.total || 20);
@@ -309,14 +374,58 @@ export default function Home() {
     }
   };
 
-  const startSwipe = async () => {
+  // ── Onboarding Flow ──
+  const startOnboarding = () => {
     if (!userName.trim()) return;
     setErrorMsg(null);
+    setOnboardingStep(0);
+    setScreen("onboarding");
+  };
+
+  const canProceedOnboarding = () => {
+    if (onboardingStep === 0) {
+      return onboardingData.gender && onboardingData.kelas && onboardingData.jurusan_sma;
+    }
+    if (onboardingStep === 1) {
+      return onboardingData.jurusan_impian && onboardingData.tingkat_keyakinan > 0;
+    }
+    return false;
+  };
+
+  const handleOnboardingNext = async () => {
+    if (onboardingStep === 0) {
+      setOnboardingStep(1);
+      return;
+    }
+    // Step 1 complete: save profile and start quiz
+    const sid = `beta_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    try {
+      await fetch('/api/user-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sid,
+          ...onboardingData,
+        })
+      });
+    } catch (e) {
+      console.error("Failed to save user profile:", e);
+    }
+    // Start quiz
+    setQuizStartTimestamp(Date.now());
+    setSessionId(sid);
     setScreen("swipe");
     setHistory([]);
     setLikedTags([]);
     setDislikedTags([]);
+    setQuestionTimings([]);
     await fetchNextCard([], [], []);
+  };
+
+  const startSwipe = async () => {
+    if (!userName.trim()) return;
+    setErrorMsg(null);
+    startOnboarding();
   };
 
   const fetchNextCard = async (currentHistory: SwipeResult[], currentLiked: string[] = likedTags, currentDisliked: string[] = dislikedTags, currentTotal: number = total) => {
@@ -341,6 +450,7 @@ export default function Home() {
         setCurrentCard(data.card);
         setCount(data.count);
         setTotal(data.total);
+        setCardShownTimestamp(Date.now()); // Track when card was shown
         if (data.phase_transition) {
           setTransitionRumpun(data.top_rumpun || "");
           setTransitionRumpunId(data.rumpun_id || "");
@@ -361,6 +471,29 @@ export default function Home() {
 
   const finishSwipe = async (finalHistory: SwipeResult[], currentLiked: string[] = likedTags, currentDisliked: string[] = dislikedTags) => {
     setScreen("loading");
+
+    // Send question timings to backend (batch)
+    if (questionTimings.length > 0 && sessionId) {
+      try {
+        await fetch('/api/question-response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            responses: questionTimings.map(qt => ({
+              question_id: qt.qid,
+              response: qt.response,
+              response_time_ms: qt.time_ms,
+              question_order: qt.order,
+              phase: qt.phase,
+            })),
+          }),
+        });
+      } catch (e) {
+        console.error("Failed to save question timings:", e);
+      }
+    }
+
     try {
       // get recommendation
       const res = await fetch("/api/recommend", {
@@ -382,7 +515,10 @@ export default function Home() {
       } else {
         setSwipeStatus(data.status || "ok");
         setResults(data.hasil || []);
-        setSessionId(data.session_id || "");
+        // Keep existing sessionId from onboarding if available, else use the one from recommend
+        if (!sessionId) {
+          setSessionId(data.session_id || "");
+        }
         
         const maxScore = data.hasil && data.hasil.length > 0 ? Math.max(...data.hasil.map((h: Recommendation) => h.skor)) : 0;
         setIsLowConfidence(maxScore < 60 && data.hasil?.length > 0);
@@ -416,6 +552,18 @@ export default function Home() {
 
   const handleSwipe = async (liked: boolean) => {
     if (!currentCard) return;
+
+    // Track response time
+    const responseTime = Date.now() - cardShownTimestamp;
+    const phase = count <= 8 ? 'opening' : (count <= 20 ? 'exploration' : 'detail');
+    setQuestionTimings(prev => [...prev, {
+      qid: currentCard.id,
+      response: liked ? 'like' : 'skip',
+      time_ms: responseTime,
+      order: count,
+      phase: phase,
+    }]);
+
     const newHist = [...history, { id: currentCard.id, liked }];
     setHistory(newHist);
     
@@ -435,6 +583,67 @@ export default function Home() {
     setTimeout(() => {
       fetchNextCard(newHist, newLikedTags, newDislikedTags);
     }, 200);
+  };
+
+  // ── Beta Feedback Submission ──
+  const submitBetaFeedback = async () => {
+    // Validate per-jurusan feedback
+    for (const r of results.slice(0, 3)) {
+      const fb = perJurusanFeedback[r.jurusan];
+      if (!fb || fb.rating_tertarik === 0 || fb.pertimbangkan === null || fb.sudah_tahu === null) {
+        alert(`Mohon lengkapi feedback untuk jurusan "${r.jurusan}" terlebih dahulu.`);
+        return;
+      }
+    }
+    setBetaFeedbackStep(1);
+  };
+
+  const submitSessionEvaluation = async () => {
+    if (evalKesesuaian === 0 || evalKepuasan === 0 || evalWawasan === 0 || evalNps === -1) {
+      alert("Mohon lengkapi semua rating evaluasi terlebih dahulu.");
+      return;
+    }
+
+    const durasiDetik = quizStartTimestamp > 0 ? Math.round((Date.now() - quizStartTimestamp) / 1000) : 0;
+
+    try {
+      // Save recommendation feedback
+      await fetch('/api/recommendation-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          feedbacks: results.slice(0, 3).map((r, i) => ({
+            jurusan: r.jurusan,
+            rank: i + 1,
+            rating_tertarik: perJurusanFeedback[r.jurusan]?.rating_tertarik || 0,
+            pertimbangkan: perJurusanFeedback[r.jurusan]?.pertimbangkan ?? false,
+            sudah_tahu: perJurusanFeedback[r.jurusan]?.sudah_tahu ?? false,
+          })),
+        }),
+      });
+
+      // Save session evaluation
+      await fetch('/api/session-evaluation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          rating_kesesuaian: evalKesesuaian,
+          rating_kepuasan: evalKepuasan,
+          rating_wawasan: evalWawasan,
+          nps_score: evalNps,
+          jurusan_seharusnya: evalJurusanSeharusnya,
+          komentar: evalKomentar,
+          durasi_total_detik: durasiDetik,
+        }),
+      });
+
+      setBetaFeedbackSent(true);
+    } catch (e) {
+      console.error(e);
+      alert("Gagal mengirim evaluasi. Silakan coba lagi.");
+    }
   };
 
   const submitFeedback = async () => {
@@ -485,6 +694,23 @@ export default function Home() {
     setItemFeedbacks({});
     setSessionId("");
     clearCompare();
+    // Reset beta testing states
+    setOnboardingStep(0);
+    setOnboardingData({
+      gender: '', kelas: '', jurusan_sma: '', provinsi: '', tipe_sekolah: '',
+      jurusan_impian: '', jurusan_diminati_1: '', jurusan_diminati_2: '', jurusan_diminati_3: '',
+      tingkat_keyakinan: 0, sudah_riset: false, sumber_info: []
+    });
+    setQuestionTimings([]);
+    setPerJurusanFeedback({});
+    setEvalKesesuaian(0);
+    setEvalKepuasan(0);
+    setEvalWawasan(0);
+    setEvalNps(-1);
+    setEvalJurusanSeharusnya('');
+    setEvalKomentar('');
+    setBetaFeedbackSent(false);
+    setBetaFeedbackStep(0);
     setScreen("landing");
   };
 
@@ -530,6 +756,62 @@ export default function Home() {
     );
   };
 
+  // ── Autocomplete Helper ──
+  const filteredJurusan = jurusanSearch.length >= 2 
+    ? jurusanList.filter(j => j.toLowerCase().includes(jurusanSearch.toLowerCase())).slice(0, 8)
+    : [];
+
+  const renderJurusanAutocomplete = (
+    value: string,
+    fieldName: string,
+    placeholder: string,
+    onChange: (val: string) => void
+  ) => (
+    <div style={{ position: 'relative' }}>
+      <input
+        type="text"
+        value={jurusanSearchField === fieldName ? jurusanSearch : value}
+        onChange={(e) => {
+          setJurusanSearch(e.target.value);
+          setJurusanSearchField(fieldName);
+          onChange(e.target.value);
+        }}
+        onFocus={() => {
+          setJurusanSearchField(fieldName);
+          setJurusanSearch(value);
+        }}
+        placeholder={placeholder}
+        className="input-vibrant"
+        style={{ border: '1px solid #E2E8F0', fontSize: '0.85rem' }}
+      />
+      {jurusanSearchField === fieldName && filteredJurusan.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+          background: 'white', border: '1px solid #E2E8F0', borderRadius: 12,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', maxHeight: 200, overflowY: 'auto',
+          marginTop: 4
+        }}>
+          {filteredJurusan.map((j, i) => (
+            <div key={i} onClick={() => {
+              onChange(j);
+              setJurusanSearch('');
+              setJurusanSearchField('');
+            }} style={{
+              padding: '10px 14px', cursor: 'pointer', fontSize: '0.85rem',
+              borderBottom: i < filteredJurusan.length - 1 ? '1px solid #F1F5F9' : 'none',
+              transition: '0.15s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--blue-light)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+            >
+              {j}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       {/* LANDING */}
@@ -570,6 +852,23 @@ export default function Home() {
             width: "100%", padding: "40px 28px",
             position: "relative", overflow: "hidden", marginBottom: 24, textAlign: "center"
           }}>
+            {/* Beta Testing Banner */}
+            <div style={{
+              background: "linear-gradient(135deg, #F59E0B, #F97316)",
+              color: "white",
+              padding: "6px 14px",
+              borderRadius: 99,
+              fontSize: "0.7rem",
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: 1.5,
+              display: "inline-block",
+              marginBottom: 16,
+              boxShadow: "0 2px 8px rgba(249, 115, 22, 0.3)",
+            }}>
+              🧪 Beta Testing v2.0
+            </div>
+
             <h1 id="brand-title" className="text-gradient" style={{
               fontFamily: "var(--font-nunito)", fontSize: "2.8rem", fontWeight: 900,
               lineHeight: 1.1, marginBottom: 16, position: "relative", zIndex: 1
@@ -618,9 +917,210 @@ export default function Home() {
             <Search size={18} /> EXPLOR JURUSAN DULU
           </button>
 
-          <p style={{ textAlign: "center", marginTop: 14, fontSize: "0.8rem", color: "var(--muted)" }}>
-            Sudah digunakan banyak pelajar Indonesia
+          <p style={{ textAlign: "center", marginTop: 14, fontSize: "0.75rem", color: "var(--muted)", lineHeight: 1.5 }}>
+            🧪 Versi beta testing — bantu kami meningkatkan akurasi rekomendasi dengan mengisi feedback di akhir kuis.
           </p>
+        </div>
+      )}
+
+      {/* ONBOARDING */}
+      {screen === "onboarding" && (
+        <div className="screen animate-slide-up" style={{ gap: 0 }}>
+          <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+            <button
+              onClick={() => { if (onboardingStep === 0) setScreen("landing"); else setOnboardingStep(0); }}
+              style={{
+                background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.15)",
+                borderRadius: 12, padding: "6px 14px", color: "var(--blue2)", fontSize: "0.82rem",
+                fontWeight: 900, cursor: "pointer", transition: "all 0.2s"
+              }}
+            >
+              ← Kembali
+            </button>
+            <span style={{ fontFamily: "var(--font-nunito)", fontWeight: 900, fontSize: "0.9rem", color: "var(--blue2)", background: "var(--blue-light)", padding: "4px 12px", borderRadius: 99 }}>
+              {onboardingStep + 1} / 2
+            </span>
+          </div>
+
+          {/* Step Progress */}
+          <div style={{ width: "100%", height: 8, background: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.8)", borderRadius: 99, overflow: "hidden", marginBottom: 24, boxShadow: "inset 0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ height: "100%", background: "linear-gradient(90deg, var(--blue), var(--purple))", borderRadius: 99, transition: "width .4s cubic-bezier(0.4, 0, 0.2, 1)", width: `${(onboardingStep + 1) * 50}%` }} />
+          </div>
+
+          {onboardingStep === 0 && (
+            <div className="glass-panel animate-slide-up" style={{ width: "100%", padding: 24 }}>
+              <div style={{ fontFamily: "var(--font-nunito)", fontSize: "1.2rem", fontWeight: 900, marginBottom: 4, color: "var(--navy)" }}>
+                👤 Data Diri
+              </div>
+              <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 20 }}>
+                Informasi ini digunakan untuk analisis dan peningkatan akurasi rekomendasi.
+              </div>
+
+              {/* Gender */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 8 }}>Gender *</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {[{v: 'L', l: '👦 Laki-laki'}, {v: 'P', l: '👧 Perempuan'}, {v: 'Lainnya', l: '🌟 Lainnya'}].map(opt => (
+                    <button key={opt.v} onClick={() => setOnboardingData(p => ({...p, gender: opt.v}))}
+                      style={{
+                        flex: 1, padding: "10px 8px", borderRadius: 12, fontSize: "0.8rem", fontWeight: 700,
+                        cursor: "pointer", transition: "all 0.2s",
+                        background: onboardingData.gender === opt.v ? "var(--blue-light)" : "white",
+                        border: `2px solid ${onboardingData.gender === opt.v ? "var(--blue)" : "#E2E8F0"}`,
+                        color: onboardingData.gender === opt.v ? "var(--blue2)" : "var(--muted)",
+                      }}
+                    >{opt.l}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Kelas */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 8 }}>Kelas *</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {['10', '11', '12', 'Alumni'].map(k => (
+                    <button key={k} onClick={() => setOnboardingData(p => ({...p, kelas: k}))}
+                      style={{
+                        flex: 1, padding: "10px 8px", borderRadius: 12, fontSize: "0.85rem", fontWeight: 700,
+                        cursor: "pointer", transition: "all 0.2s",
+                        background: onboardingData.kelas === k ? "var(--blue-light)" : "white",
+                        border: `2px solid ${onboardingData.kelas === k ? "var(--blue)" : "#E2E8F0"}`,
+                        color: onboardingData.kelas === k ? "var(--blue2)" : "var(--muted)",
+                      }}
+                    >{k}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Jurusan SMA */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 8 }}>Jurusan SMA *</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {['IPA', 'IPS', 'Bahasa', 'Lainnya'].map(j => (
+                    <button key={j} onClick={() => setOnboardingData(p => ({...p, jurusan_sma: j}))}
+                      style={{
+                        flex: "1 1 45%", padding: "10px 8px", borderRadius: 12, fontSize: "0.85rem", fontWeight: 700,
+                        cursor: "pointer", transition: "all 0.2s",
+                        background: onboardingData.jurusan_sma === j ? "var(--blue-light)" : "white",
+                        border: `2px solid ${onboardingData.jurusan_sma === j ? "var(--blue)" : "#E2E8F0"}`,
+                        color: onboardingData.jurusan_sma === j ? "var(--blue2)" : "var(--muted)",
+                      }}
+                    >{j}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {onboardingStep === 1 && (
+            <div className="glass-panel animate-slide-up" style={{ width: "100%", padding: 24 }}>
+              <div style={{ fontFamily: "var(--font-nunito)", fontSize: "1.2rem", fontWeight: 900, marginBottom: 4, color: "var(--navy)" }}>
+                🎯 Minat Jurusan Awal
+              </div>
+              <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 20 }}>
+                Beri tahu kami jurusan yang kamu minati saat ini. Data ini digunakan untuk mengukur akurasi rekomendasi.
+              </div>
+
+              {/* Jurusan Impian */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 8 }}>Jurusan impian utama *</div>
+                {renderJurusanAutocomplete(
+                  onboardingData.jurusan_impian,
+                  'jurusan_impian',
+                  'Ketik nama jurusan...',
+                  (val) => setOnboardingData(p => ({...p, jurusan_impian: val}))
+                )}
+              </div>
+
+              {/* Top 3 Diminati */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 4 }}>3 Jurusan yang diminati</div>
+                <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginBottom: 8 }}>Opsional — bisa sama atau berbeda dari jurusan impian</div>
+                {[1, 2, 3].map(n => (
+                  <div key={n} style={{ marginBottom: 8 }}>
+                    {renderJurusanAutocomplete(
+                      onboardingData[`jurusan_diminati_${n}` as keyof OnboardingData] as string,
+                      `jurusan_diminati_${n}`,
+                      `Jurusan diminati ${n} (opsional)`,
+                      (val) => setOnboardingData(p => ({...p, [`jurusan_diminati_${n}`]: val}))
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Tingkat Keyakinan */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 8 }}>Seberapa yakin kamu dengan pilihan jurusan saat ini? *</div>
+                <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={n} onClick={() => setOnboardingData(p => ({...p, tingkat_keyakinan: n}))}
+                      style={{
+                        width: 48, height: 48, borderRadius: 12, fontSize: "0.9rem", fontWeight: 800,
+                        cursor: "pointer", transition: "all 0.2s",
+                        background: onboardingData.tingkat_keyakinan >= n ? "var(--blue-light)" : "white",
+                        border: `2px solid ${onboardingData.tingkat_keyakinan >= n ? "var(--blue)" : "#E2E8F0"}`,
+                        color: onboardingData.tingkat_keyakinan >= n ? "var(--blue2)" : "var(--muted)",
+                      }}
+                    >{n}</button>
+                  ))}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "var(--muted)", marginTop: 4, padding: "0 4px" }}>
+                  <span>Sangat Tidak Yakin</span>
+                  <span>Sangat Yakin</span>
+                </div>
+              </div>
+
+              {/* Sudah Riset */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 8 }}>Apakah kamu sudah pernah riset jurusan sebelumnya?</div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {[{v: true, l: '✅ Sudah'}, {v: false, l: '❌ Belum'}].map(opt => (
+                    <button key={String(opt.v)} onClick={() => setOnboardingData(p => ({...p, sudah_riset: opt.v}))}
+                      style={{
+                        flex: 1, padding: "10px 8px", borderRadius: 12, fontSize: "0.85rem", fontWeight: 700,
+                        cursor: "pointer", transition: "all 0.2s",
+                        background: onboardingData.sudah_riset === opt.v ? "var(--blue-light)" : "white",
+                        border: `2px solid ${onboardingData.sudah_riset === opt.v ? "var(--blue)" : "#E2E8F0"}`,
+                        color: onboardingData.sudah_riset === opt.v ? "var(--blue2)" : "var(--muted)",
+                      }}
+                    >{opt.l}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sumber Info */}
+              <div style={{ marginBottom: 0 }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--navy)", marginBottom: 8 }}>Dari mana kamu mendapat info jurusan?</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {['Orang tua', 'Guru BK', 'Internet', 'Teman', 'Lainnya'].map(src => {
+                    const selected = onboardingData.sumber_info.includes(src);
+                    return (
+                      <button key={src}
+                        onClick={() => setOnboardingData(p => ({
+                          ...p,
+                          sumber_info: selected ? p.sumber_info.filter(s => s !== src) : [...p.sumber_info, src]
+                        }))}
+                        style={{
+                          padding: "8px 14px", borderRadius: 99, fontSize: "0.78rem", fontWeight: 700,
+                          cursor: "pointer", transition: "all 0.2s",
+                          background: selected ? "var(--blue-light)" : "white",
+                          border: `1.5px solid ${selected ? "var(--blue)" : "#E2E8F0"}`,
+                          color: selected ? "var(--blue2)" : "var(--muted)",
+                        }}
+                      >{src}</button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <button className="btn-primary" onClick={handleOnboardingNext}
+            disabled={!canProceedOnboarding()}
+            style={{ marginTop: 20, opacity: canProceedOnboarding() ? 1 : 0.5, cursor: canProceedOnboarding() ? "pointer" : "not-allowed" }}
+          >
+            {onboardingStep === 0 ? "Lanjut →" : "🚀 Mulai Kuis"}
+          </button>
         </div>
       )}
 
@@ -864,121 +1364,241 @@ export default function Home() {
                     {compareList.includes(j.jurusan) ? "✓ Terpilih" : "⚖️ Bandingkan"}
                   </button>
                 </div>
-                
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                  <button 
-                    id={`btn-item-like-${i}`}
-                    onClick={() => sendItemFeedback(j.jurusan, "like")}
-                    style={{ background: itemFeedbacks[j.jurusan] === "like" ? "var(--green-light)" : "#F1F5F9", border: "none", borderRadius: 12, padding: "10px 14px", cursor: "pointer", transition: "0.2s", fontSize: "1.1rem" }}
-                  >👍</button>
-                  <button 
-                    id={`btn-item-dislike-${i}`}
-                    onClick={() => sendItemFeedback(j.jurusan, "dislike")}
-                    style={{ background: itemFeedbacks[j.jurusan] === "dislike" ? "var(--red-light)" : "#F1F5F9", border: "none", borderRadius: 12, padding: "10px 14px", cursor: "pointer", transition: "0.2s", fontSize: "1.1rem" }}
-                  >👎</button>
-                </div>
+
+                {/* ── Beta Testing: Per-Jurusan Feedback ── */}
+                {!betaFeedbackSent && (
+                  <div style={{ borderTop: "1px dashed #E2E8F0", paddingTop: 14, marginTop: 4 }}>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--blue2)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
+                      📋 Feedback untuk jurusan ini
+                    </div>
+
+                    {/* Rating Ketertarikan */}
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 6 }}>Seberapa tertarik kamu?</div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button key={star}
+                            onClick={() => setPerJurusanFeedback(prev => ({
+                              ...prev,
+                              [j.jurusan]: { ...prev[j.jurusan], rating_tertarik: star, pertimbangkan: prev[j.jurusan]?.pertimbangkan ?? null, sudah_tahu: prev[j.jurusan]?.sudah_tahu ?? null }
+                            }))}
+                            style={{
+                              width: 36, height: 36, borderRadius: 10,
+                              border: `2px solid ${(perJurusanFeedback[j.jurusan]?.rating_tertarik || 0) >= star ? "var(--yellow2)" : "#E2E8F0"}`,
+                              background: (perJurusanFeedback[j.jurusan]?.rating_tertarik || 0) >= star ? "#FEF9C3" : "white",
+                              fontSize: "1rem", cursor: "pointer", transition: "all .2s",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              transform: (perJurusanFeedback[j.jurusan]?.rating_tertarik || 0) >= star ? "scale(1.05)" : "scale(1)",
+                            }}
+                          >⭐</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Pertimbangkan */}
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 6 }}>Pertimbangkan mengambil jurusan ini?</div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {[{v: true, l: '✅ Ya'}, {v: false, l: '❌ Tidak'}].map(opt => (
+                          <button key={String(opt.v)}
+                            onClick={() => setPerJurusanFeedback(prev => ({
+                              ...prev,
+                              [j.jurusan]: { ...prev[j.jurusan], pertimbangkan: opt.v, rating_tertarik: prev[j.jurusan]?.rating_tertarik || 0, sudah_tahu: prev[j.jurusan]?.sudah_tahu ?? null }
+                            }))}
+                            style={{
+                              flex: 1, padding: "8px", borderRadius: 10, fontSize: "0.8rem", fontWeight: 700,
+                              cursor: "pointer", transition: "all 0.2s",
+                              background: perJurusanFeedback[j.jurusan]?.pertimbangkan === opt.v ? "var(--blue-light)" : "white",
+                              border: `1.5px solid ${perJurusanFeedback[j.jurusan]?.pertimbangkan === opt.v ? "var(--blue)" : "#E2E8F0"}`,
+                              color: perJurusanFeedback[j.jurusan]?.pertimbangkan === opt.v ? "var(--blue2)" : "var(--muted)",
+                            }}
+                          >{opt.l}</button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Sudah Tahu */}
+                    <div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: 6 }}>Apakah kamu sudah tahu jurusan ini sebelumnya?</div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {[{v: true, l: '✅ Sudah'}, {v: false, l: '❌ Belum'}].map(opt => (
+                          <button key={String(opt.v)}
+                            onClick={() => setPerJurusanFeedback(prev => ({
+                              ...prev,
+                              [j.jurusan]: { ...prev[j.jurusan], sudah_tahu: opt.v, rating_tertarik: prev[j.jurusan]?.rating_tertarik || 0, pertimbangkan: prev[j.jurusan]?.pertimbangkan ?? null }
+                            }))}
+                            style={{
+                              flex: 1, padding: "8px", borderRadius: 10, fontSize: "0.8rem", fontWeight: 700,
+                              cursor: "pointer", transition: "all 0.2s",
+                              background: perJurusanFeedback[j.jurusan]?.sudah_tahu === opt.v ? "var(--blue-light)" : "white",
+                              border: `1.5px solid ${perJurusanFeedback[j.jurusan]?.sudah_tahu === opt.v ? "var(--blue)" : "#E2E8F0"}`,
+                              color: perJurusanFeedback[j.jurusan]?.sudah_tahu === opt.v ? "var(--blue2)" : "var(--muted)",
+                            }}
+                          >{opt.l}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
-          <div className="glass-panel" style={{ width: "100%", padding: 24 }} id="feedback-form-container">
-            {!feedbackSent ? (
-              <>
-                <div style={{ fontFamily: "var(--font-nunito)", fontSize: "1.2rem", fontWeight: 900, marginBottom: 16, color: "var(--navy)", borderBottom: "1px solid #E2E8F0", paddingBottom: 10 }}>
-                  📝 Penilaian & Feedback
-                </div>
-                
-                {/* 1. Akurasi Rekomendasi */}
-                <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontFamily: "var(--font-nunito)", fontSize: "1.05rem", fontWeight: 800, marginBottom: 4, color: "var(--navy)" }}>Akurasi Rekomendasi Jurusan</div>
-                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12 }}>Seberapa tepat hasil rekomendasi dengan minat aslimu?</div>
-                  
-                  <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>Pilih Jurusan Utama</div>
-                  <select
-                    id="select-feedback-jurusan"
-                    value={feedbackJurusan}
-                    onChange={(e) => setFeedbackJurusan(e.target.value)}
-                    className="input-vibrant"
-                    style={{ padding: "12px 16px", marginBottom: 12, border: "1px solid #E2E8F0" }}
-                  >
-                    {results.map((r, i) => (
-                      <option key={i} value={r.jurusan}>{r.jurusan}</option>
-                    ))}
-                  </select>
-
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12, justifyContent: "center" }}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        id={`btn-rate-star-${star}`}
-                        onClick={() => setRating(star)}
-                        style={{
-                          width: 44, height: 44, borderRadius: 12, border: `2px solid ${rating >= star ? "var(--yellow2)" : "#E2E8F0"}`,
-                          background: rating >= star ? "#FEF9C3" : "white", fontSize: "1.2rem", cursor: "pointer",
-                          transition: "all .2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", display: "flex", alignItems: "center", justifyContent: "center",
-                          transform: rating >= star ? "scale(1.1)" : "scale(1)",
-                          boxShadow: rating >= star ? "0 4px 10px rgba(251, 191, 36, 0.2)" : "none"
-                        }}
-                      >
-                        ⭐
-                      </button>
-                    ))}
+          {/* ── Beta Testing: Session Evaluation ── */}
+          {!betaFeedbackSent && (
+            <div className="glass-panel" style={{ width: "100%", padding: 24 }} id="beta-feedback-form">
+              {betaFeedbackStep === 0 ? (
+                <>
+                  <div style={{ fontFamily: "var(--font-nunito)", fontSize: "1.1rem", fontWeight: 900, marginBottom: 4, color: "var(--navy)" }}>
+                    📝 Evaluasi Hasil Rekomendasi
                   </div>
-                  
-                  <textarea
-                    id="textarea-feedback-comment"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Masukan tentang akurasi rekomendasi (opsional)..."
-                    className="input-vibrant"
-                    style={{ padding: "12px 14px", minHeight: 70, resize: "none", border: "1px solid #E2E8F0", fontSize: "0.85rem" }}
-                  />
-                </div>
-
-                {/* 2. Penggunaan Website */}
-                <div style={{ marginBottom: 24, borderTop: "1px dashed #E2E8F0", paddingTop: 16 }}>
-                  <div style={{ fontFamily: "var(--font-nunito)", fontSize: "1.05rem", fontWeight: 800, marginBottom: 4, color: "var(--navy)" }}>Penggunaan Website</div>
-                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12 }}>Bagaimana pengalamanmu menggunakan web ini secara keseluruhan?</div>
-
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12, justifyContent: "center" }}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        id={`btn-web-rate-star-${star}`}
-                        onClick={() => setWebRating(star)}
-                        style={{
-                          width: 44, height: 44, borderRadius: 12, border: `2px solid ${webRating >= star ? "var(--yellow2)" : "#E2E8F0"}`,
-                          background: webRating >= star ? "#FEF9C3" : "white", fontSize: "1.2rem", cursor: "pointer",
-                          transition: "all .2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", display: "flex", alignItems: "center", justifyContent: "center",
-                          transform: webRating >= star ? "scale(1.1)" : "scale(1)",
-                          boxShadow: webRating >= star ? "0 4px 10px rgba(251, 191, 36, 0.2)" : "none"
-                        }}
-                      >
-                        ⭐
-                      </button>
-                    ))}
+                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 16 }}>
+                    Lengkapi feedback per-jurusan di atas, lalu klik tombol di bawah.
+                  </div>
+                  <button className="btn-primary" onClick={submitBetaFeedback}>
+                    Lanjut ke Evaluasi Keseluruhan →
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontFamily: "var(--font-nunito)", fontSize: "1.1rem", fontWeight: 900, marginBottom: 4, color: "var(--navy)" }}>
+                    📊 Evaluasi Keseluruhan
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginBottom: 20 }}>
+                    Bantu kami meningkatkan akurasi sistem dengan memberikan evaluasi jujur.
                   </div>
 
-                  <textarea
-                    id="textarea-web-feedback-comment"
-                    value={webComment}
-                    onChange={(e) => setWebComment(e.target.value)}
-                    placeholder="Masukan tentang desain, kecepatan, atau kemudahan web (opsional)..."
-                    className="input-vibrant"
-                    style={{ padding: "12px 14px", minHeight: 70, resize: "none", border: "1px solid #E2E8F0", fontSize: "0.85rem" }}
-                  />
-                </div>
+                  {/* Rating Kesesuaian */}
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--navy)", marginBottom: 8 }}>Seberapa sesuai hasil rekomendasi dengan minat kamu? *</div>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <button key={n} onClick={() => setEvalKesesuaian(n)}
+                          style={{
+                            width: 44, height: 44, borderRadius: 12, fontSize: "1.1rem", cursor: "pointer", transition: "all .2s",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            border: `2px solid ${evalKesesuaian >= n ? "var(--yellow2)" : "#E2E8F0"}`,
+                            background: evalKesesuaian >= n ? "#FEF9C3" : "white",
+                            transform: evalKesesuaian >= n ? "scale(1.1)" : "scale(1)",
+                          }}
+                        >⭐</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "var(--muted)", marginTop: 4 }}>
+                      <span>Tidak Sesuai</span><span>Sangat Sesuai</span>
+                    </div>
+                  </div>
 
-                <button id="btn-submit-feedback" className="btn-primary" onClick={submitFeedback}>Kirim Penilaian</button>
-              </>
-            ) : (
-              <div style={{ textAlign: "center", padding: "20px 0" }} id="feedback-success-message">
-                <CheckCircle2 size={56} color="var(--green)" style={{ margin: "0 auto 12px" }} />
-                <div className="text-gradient" style={{ fontFamily: "var(--font-nunito)", fontWeight: 900, fontSize: "1.2rem", marginBottom: 4 }}>Makasih atas penilaiannya!</div>
-                <div style={{ fontSize: "0.9rem", color: "var(--muted)", fontWeight: 600 }}>Feedback kamu sangat berarti untuk kami.</div>
+                  {/* Rating Kepuasan */}
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--navy)", marginBottom: 8 }}>Seberapa puas kamu dengan hasil rekomendasi? *</div>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <button key={n} onClick={() => setEvalKepuasan(n)}
+                          style={{
+                            width: 44, height: 44, borderRadius: 12, fontSize: "1.1rem", cursor: "pointer", transition: "all .2s",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            border: `2px solid ${evalKepuasan >= n ? "var(--yellow2)" : "#E2E8F0"}`,
+                            background: evalKepuasan >= n ? "#FEF9C3" : "white",
+                            transform: evalKepuasan >= n ? "scale(1.1)" : "scale(1)",
+                          }}
+                        >⭐</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "var(--muted)", marginTop: 4 }}>
+                      <span>Tidak Puas</span><span>Sangat Puas</span>
+                    </div>
+                  </div>
+
+                  {/* Rating Wawasan */}
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--navy)", marginBottom: 8 }}>Apakah hasil rekomendasi memberikan wawasan baru? *</div>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <button key={n} onClick={() => setEvalWawasan(n)}
+                          style={{
+                            width: 44, height: 44, borderRadius: 12, fontSize: "1.1rem", cursor: "pointer", transition: "all .2s",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            border: `2px solid ${evalWawasan >= n ? "var(--yellow2)" : "#E2E8F0"}`,
+                            background: evalWawasan >= n ? "#FEF9C3" : "white",
+                            transform: evalWawasan >= n ? "scale(1.1)" : "scale(1)",
+                          }}
+                        >⭐</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "var(--muted)", marginTop: 4 }}>
+                      <span>Tidak Sama Sekali</span><span>Sangat Banyak</span>
+                    </div>
+                  </div>
+
+                  {/* NPS */}
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--navy)", marginBottom: 8 }}>Seberapa besar kemungkinan kamu merekomendasikan web ini ke teman? *</div>
+                    <div style={{ display: "flex", gap: 4, justifyContent: "center", flexWrap: "wrap" }}>
+                      {[0,1,2,3,4,5,6,7,8,9,10].map(n => (
+                        <button key={n} onClick={() => setEvalNps(n)}
+                          style={{
+                            width: 36, height: 36, borderRadius: 10, fontSize: "0.8rem", fontWeight: 800,
+                            cursor: "pointer", transition: "all .2s",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            border: `2px solid ${evalNps === n ? (n <= 6 ? "#EF4444" : n <= 8 ? "#F59E0B" : "#10B981") : "#E2E8F0"}`,
+                            background: evalNps === n ? (n <= 6 ? "#FEF2F2" : n <= 8 ? "#FFFBEB" : "#F0FDF4") : "white",
+                            color: evalNps === n ? (n <= 6 ? "#EF4444" : n <= 8 ? "#F59E0B" : "#10B981") : "var(--muted)",
+                          }}
+                        >{n}</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "var(--muted)", marginTop: 4 }}>
+                      <span>Sangat Tidak Mungkin</span><span>Sangat Mungkin</span>
+                    </div>
+                  </div>
+
+                  {/* Jurusan Seharusnya */}
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--navy)", marginBottom: 8 }}>Jurusan apa yang menurut kamu seharusnya muncul tapi tidak ada?</div>
+                    {renderJurusanAutocomplete(
+                      evalJurusanSeharusnya,
+                      'eval_jurusan_seharusnya',
+                      'Ketik nama jurusan (opsional)...',
+                      (val) => setEvalJurusanSeharusnya(val)
+                    )}
+                  </div>
+
+                  {/* Komentar */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--navy)", marginBottom: 8 }}>Komentar atau masukan lainnya</div>
+                    <textarea
+                      value={evalKomentar}
+                      onChange={(e) => setEvalKomentar(e.target.value)}
+                      placeholder="Tulis komentar, masukan, atau saran..."
+                      className="input-vibrant"
+                      style={{ padding: "12px 14px", minHeight: 80, resize: "none", border: "1px solid #E2E8F0", fontSize: "0.85rem" }}
+                    />
+                  </div>
+
+                  <button className="btn-primary" onClick={submitSessionEvaluation}>
+                    📨 Kirim Evaluasi
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Success message after beta feedback sent */}
+          {betaFeedbackSent && (
+            <div className="glass-panel" style={{ width: "100%", padding: 24, textAlign: "center" }}>
+              <CheckCircle2 size={56} color="var(--green)" style={{ margin: "0 auto 12px" }} />
+              <div className="text-gradient" style={{ fontFamily: "var(--font-nunito)", fontWeight: 900, fontSize: "1.2rem", marginBottom: 4 }}>
+                Terima kasih atas evaluasimu! 🎉
               </div>
-            )}
-          </div>
+              <div style={{ fontSize: "0.9rem", color: "var(--muted)", fontWeight: 600, marginBottom: 4 }}>
+                Feedback kamu sangat berarti untuk meningkatkan akurasi rekomendasi.
+              </div>
+              <div style={{ fontSize: "0.78rem", color: "var(--blue2)", fontWeight: 700 }}>
+                🧪 Data beta testing berhasil tercatat.
+              </div>
+            </div>
+          )}
 
           <button id="btn-explore-majors-bottom" className="btn-primary" style={{ display: "flex", gap: 10, alignItems: "center" }} onClick={() => router.push("/explore")}>
             <Search size={20} /> Explore Semua Jurusan

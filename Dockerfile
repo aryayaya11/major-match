@@ -14,7 +14,17 @@ ENV FLASK_APP=run.py
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
 
+# Create a non-root user
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
 EXPOSE 5000
 
-# Entry point untuk menjalankan Flask dan migrasi database otomatis
-CMD flask db upgrade && python run.py
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')" || exit 1
+
+# Entry point: run migrations then start Gunicorn production server
+CMD flask db upgrade && gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 --access-logfile - run:app
