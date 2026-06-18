@@ -424,6 +424,61 @@ def feedback():
 
     return jsonify({'message': 'Feedback tersimpan'})
 
+@api_bp.route('/debug-db', methods=['GET'])
+@require_admin_key
+def debug_db():
+    """Temporary: cek schema PostgreSQL dan jalankan db upgrade."""
+    try:
+        from sqlalchemy import inspect as sa_inspect, text
+        inspector = sa_inspect(db.engine)
+
+        # Cek kolom user_profiles
+        try:
+            cols = [c['name'] for c in inspector.get_columns('user_profiles')]
+        except Exception as e:
+            cols = [f'ERROR: {e}']
+
+        # Cek alembic version
+        try:
+            result = db.session.execute(text('SELECT version_num FROM alembic_version')).fetchall()
+            alembic_ver = [r[0] for r in result]
+        except Exception as e:
+            alembic_ver = [f'ERROR: {e}']
+
+        # Cek semua tabel
+        try:
+            tables = inspector.get_table_names()
+        except Exception as e:
+            tables = [f'ERROR: {e}']
+
+        # Coba test insert user_profiles
+        test_result = 'not tested'
+        try:
+            from app.models import UserProfile
+            test = UserProfile(
+                session_id='debug_test_xyz_999',
+                gender='L', kelas='12', jurusan_sma='IPA',
+                jurusan_impian='Test', tingkat_keyakinan=3,
+                sudah_riset=False, sumber_info='[]'
+            )
+            db.session.add(test)
+            db.session.flush()  # Try insert without commit
+            db.session.rollback()  # Rollback test
+            test_result = 'INSERT OK (rolled back)'
+        except Exception as e:
+            db.session.rollback()
+            test_result = f'INSERT FAILED: {str(e)}'
+
+        return jsonify({
+            'user_profiles_columns': cols,
+            'alembic_version': alembic_ver,
+            'tables': tables,
+            'test_insert': test_result,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @api_bp.route('/stats', methods=['GET'])
 @require_admin_key
 def stats():
@@ -443,6 +498,7 @@ def stats():
       401:
         description: Unauthorized
     """
+
     try:
         total = FeedbackSession.query.count()
 
