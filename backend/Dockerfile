@@ -26,5 +26,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; import os; port = os.environ.get('PORT', '5000'); urllib.request.urlopen(f'http://localhost:{port}/api/health')" || exit 1
 
-# Entry point: Gunicorn production server
-CMD sh -c "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 4 --timeout 120 --access-logfile - run:app"
+# Entry point: run migrations then start Gunicorn production server
+CMD sh -c "flask db upgrade && gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 4 --timeout 120 --access-logfile - run:app"
