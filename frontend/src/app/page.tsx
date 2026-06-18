@@ -356,6 +356,8 @@ export default function Home() {
     setWebRating(pendingSession.webRating || 0);
     setWebComment(pendingSession.webComment || "");
     if (pendingSession.onboardingData) setOnboardingData(pendingSession.onboardingData);
+    // FIX: Restore sessionId agar session_id tetap sama dengan yang tersimpan di user_profiles
+    if (pendingSession.sessionId) setSessionId(pendingSession.sessionId);
     setScreen("swipe");
     setPendingSession(null);
     fetchNextCard(pendingSession.history || [], pendingSession.likedTags || [], pendingSession.dislikedTags || [], pendingSession.total || 20);
@@ -497,7 +499,7 @@ export default function Home() {
       const res = await fetch("/api/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama: userName, history: finalHistory, liked_tags: currentLiked, disliked_tags: currentDisliked }),
+        body: JSON.stringify({ session_id: sessionId, nama: userName, history: finalHistory, liked_tags: currentLiked, disliked_tags: currentDisliked }),
       });
       if (!res.ok) {
         if (res.status === 429) {

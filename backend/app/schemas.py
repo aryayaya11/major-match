@@ -23,6 +23,7 @@ class NextCardSchema(Schema):
     limit = fields.Integer(load_default=15)
 
 class RecommendSchema(Schema):
+    session_id = fields.String(load_default='', validate=validate.Length(max=64))
     nama = fields.String(load_default='Kamu', validate=validate.Length(max=100))
     liked_tags = fields.List(fields.String(), load_default=[])
     disliked_tags = fields.List(fields.String(), load_default=[])

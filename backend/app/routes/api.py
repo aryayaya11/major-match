@@ -273,7 +273,10 @@ def recommend():
             logger.error(f"Error in recommend: {e}")
             return error_response('Internal server error')
 
-    sid = str(uuid.uuid4())
+    # Use session_id from frontend if available (beta testing), else generate new one
+    sid = data.get('session_id')
+    if not sid:
+        sid = str(uuid.uuid4())
 
     # Auto-save session details to the database
     try:
