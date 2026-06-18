@@ -20,11 +20,11 @@ RUN adduser --disabled-password --gecos '' appuser && \
 
 USER appuser
 
-EXPOSE 5000
+ENV PORT=5000
+EXPOSE $PORT
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')" || exit 1
+    CMD python -c "import urllib.request; import os; port = os.environ.get('PORT', '5000'); urllib.request.urlopen(f'http://localhost:{port}/api/health')" || exit 1
 
 # Entry point: run migrations then start Gunicorn production server
-CMD flask db upgrade && gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 --access-logfile - run:app
+CMD flask db upgrade && gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 4 --timeout 120 --access-logfile - run:app
