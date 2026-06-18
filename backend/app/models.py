@@ -99,8 +99,6 @@ class UserProfile(db.Model):
     gender = db.Column(db.String(10))           # L, P, Lainnya
     kelas = db.Column(db.String(10))            # 10, 11, 12, Alumni
     jurusan_sma = db.Column(db.String(20))      # IPA, IPS, Bahasa, Lainnya
-    provinsi = db.Column(db.String(50))
-    tipe_sekolah = db.Column(db.String(10))     # SMA, SMK, MA, Lainnya
 
     # Ground Truth Pre-Test
     jurusan_impian = db.Column(db.String(200))
@@ -129,8 +127,6 @@ class UserProfile(db.Model):
             'gender': self.gender,
             'kelas': self.kelas,
             'jurusan_sma': self.jurusan_sma,
-            'provinsi': self.provinsi,
-            'tipe_sekolah': self.tipe_sekolah,
             'jurusan_impian': self.jurusan_impian,
             'jurusan_diminati': [self.jurusan_diminati_1, self.jurusan_diminati_2, self.jurusan_diminati_3],
             'tingkat_keyakinan': self.tingkat_keyakinan,

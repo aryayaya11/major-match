@@ -62,8 +62,6 @@ interface OnboardingData {
   gender: string;
   kelas: string;
   jurusan_sma: string;
-  provinsi: string;
-  tipe_sekolah: string;
   jurusan_impian: string;
   jurusan_diminati_1: string;
   jurusan_diminati_2: string;
@@ -204,7 +202,7 @@ export default function Home() {
   // ── Beta Testing States ──
   const [onboardingStep, setOnboardingStep] = useState(0); // 0=demografi, 1=ground truth
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
-    gender: '', kelas: '', jurusan_sma: '', provinsi: '', tipe_sekolah: '',
+    gender: '', kelas: '', jurusan_sma: '',
     jurusan_impian: '', jurusan_diminati_1: '', jurusan_diminati_2: '', jurusan_diminati_3: '',
     tingkat_keyakinan: 0, sudah_riset: false, sumber_info: []
   });
@@ -697,7 +695,7 @@ export default function Home() {
     // Reset beta testing states
     setOnboardingStep(0);
     setOnboardingData({
-      gender: '', kelas: '', jurusan_sma: '', provinsi: '', tipe_sekolah: '',
+      gender: '', kelas: '', jurusan_sma: '',
       jurusan_impian: '', jurusan_diminati_1: '', jurusan_diminati_2: '', jurusan_diminati_3: '',
       tingkat_keyakinan: 0, sudah_riset: false, sumber_info: []
     });

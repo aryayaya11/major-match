@@ -46,10 +46,6 @@ class UserProfileSchema(Schema):
     kelas = fields.String(required=True, validate=validate.OneOf(['10', '11', '12', 'Alumni']))
     jurusan_sma = fields.String(required=True, validate=validate.OneOf(['IPA', 'IPS', 'Bahasa', 'Lainnya']))
 
-    # Demografi (opsional)
-    provinsi = fields.String(load_default='', validate=validate.Length(max=50))
-    tipe_sekolah = fields.String(load_default='', validate=validate.OneOf(['SMA', 'SMK', 'MA', 'Lainnya', '']))
-
     # Ground Truth Pre-Test
     jurusan_impian = fields.String(required=True, validate=validate.Length(min=1, max=200))
     jurusan_diminati_1 = fields.String(load_default='', validate=validate.Length(max=200))
