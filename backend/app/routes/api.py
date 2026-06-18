@@ -735,8 +735,6 @@ def save_user_profile():
             gender=data['gender'],
             kelas=data['kelas'],
             jurusan_sma=data['jurusan_sma'],
-            provinsi=data.get('provinsi', ''),
-            tipe_sekolah=data.get('tipe_sekolah', ''),
             jurusan_impian=data['jurusan_impian'],
             jurusan_diminati_1=data.get('jurusan_diminati_1', ''),
             jurusan_diminati_2=data.get('jurusan_diminati_2', ''),
