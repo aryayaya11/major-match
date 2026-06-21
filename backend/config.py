@@ -1,5 +1,5 @@
 import os
-import secrets
+import ssl as ssl_module
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -28,6 +28,25 @@ class Config:
         db_uri = 'sqlite:///majorMatch.db'
     SQLALCHEMY_DATABASE_URI = db_uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # ── SQLAlchemy Engine Options ──
+    # Pool pre-ping: test koneksi sebelum digunakan (mencegah stale connection error)
+    # Pool recycle: recycle koneksi setiap 5 menit agar tidak terlalu lama idle
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+        "pool_timeout": 20,
+        "pool_size": 5,
+        "max_overflow": 10,
+    }
+
+    # Tambahkan SSL context untuk koneksi pg8000 ke Railway PostgreSQL
+    # Railway mewajibkan SSL, pg8000 tidak mengaktifkannya secara default
+    if db_uri and 'postgresql+pg8000' in db_uri:
+        _ssl_ctx = ssl_module.create_default_context()
+        _ssl_ctx.check_hostname = False
+        _ssl_ctx.verify_mode = ssl_module.CERT_NONE
+        SQLALCHEMY_ENGINE_OPTIONS["connect_args"] = {"ssl_context": _ssl_ctx}
 
     # ── Application ──
     DEBUG = os.environ.get('FLASK_ENV') == 'development'

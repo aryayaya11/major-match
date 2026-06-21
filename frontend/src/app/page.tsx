@@ -183,6 +183,13 @@ export default function Home() {
   
   const [isLowConfidence, setIsLowConfidence] = useState(false);
   const [sessionId, setSessionId] = useState("");
+  // Ref untuk sessionId — nilai selalu sinkron, tidak tergantung React re-render cycle.
+  // Ini menghindari stale closure di finishSwipe() dan callback async lainnya.
+  const sessionIdRef = useRef<string>("");
+  const setSessionIdSync = (sid: string) => {
+    sessionIdRef.current = sid;
+    setSessionId(sid);
+  };
   const [itemFeedbacks, setItemFeedbacks] = useState<Record<string, string>>({});
   const [swipeStatus, setSwipeStatus] = useState<string>("ok");
   const [extendModalOpen, setExtendModalOpen] = useState(false);
@@ -293,7 +300,7 @@ export default function Home() {
             if (state.dislikedTags) setDislikedTags(state.dislikedTags);
             if (state.results) setResults(state.results);
             if (state.screen) setScreen(state.screen);
-            if (state.sessionId) setSessionId(state.sessionId);
+            if (state.sessionId) setSessionIdSync(state.sessionId);
             if (state.isLowConfidence !== undefined) setIsLowConfidence(state.isLowConfidence);
             if (state.swipeStatus) setSwipeStatus(state.swipeStatus);
             if (state.total) setTotal(state.total);
@@ -357,7 +364,8 @@ export default function Home() {
     setWebComment(pendingSession.webComment || "");
     if (pendingSession.onboardingData) setOnboardingData(pendingSession.onboardingData);
     // FIX: Restore sessionId agar session_id tetap sama dengan yang tersimpan di user_profiles
-    if (pendingSession.sessionId) setSessionId(pendingSession.sessionId);
+    // Update ref SEBELUM fetchNextCard dipanggil agar tidak ada stale closure
+    if (pendingSession.sessionId) setSessionIdSync(pendingSession.sessionId);
     setScreen("swipe");
     setPendingSession(null);
     fetchNextCard(pendingSession.history || [], pendingSession.likedTags || [], pendingSession.dislikedTags || [], pendingSession.total || 20);
@@ -411,9 +419,10 @@ export default function Home() {
     } catch (e) {
       console.error("Failed to save user profile:", e);
     }
-    // Start quiz
+    // Update ref SEBELUM setScreen dan fetchNextCard
+    // agar sessionId sudah siap digunakan di finishSwipe() meski React belum re-render
+    setSessionIdSync(sid);
     setQuizStartTimestamp(Date.now());
-    setSessionId(sid);
     setScreen("swipe");
     setHistory([]);
     setLikedTags([]);
@@ -473,13 +482,15 @@ export default function Home() {
     setScreen("loading");
 
     // Send question timings to backend (batch)
-    if (questionTimings.length > 0 && sessionId) {
+    // Gunakan sessionIdRef.current (bukan state) untuk menghindari stale closure
+    const activeSid = sessionIdRef.current;
+    if (questionTimings.length > 0 && activeSid) {
       try {
         await fetch('/api/question-response', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            session_id: sessionId,
+            session_id: activeSid,
             responses: questionTimings.map(qt => ({
               question_id: qt.qid,
               response: qt.response,
@@ -496,10 +507,11 @@ export default function Home() {
 
     try {
       // get recommendation
+      // Gunakan activeSid dari ref, bukan dari state sessionId (yang mungkin stale)
       const res = await fetch("/api/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, nama: userName, history: finalHistory, liked_tags: currentLiked, disliked_tags: currentDisliked }),
+        body: JSON.stringify({ session_id: activeSid, nama: userName, history: finalHistory, liked_tags: currentLiked, disliked_tags: currentDisliked }),
       });
       if (!res.ok) {
         if (res.status === 429) {
@@ -516,8 +528,8 @@ export default function Home() {
         setSwipeStatus(data.status || "ok");
         setResults(data.hasil || []);
         // Keep existing sessionId from onboarding if available, else use the one from recommend
-        if (!sessionId) {
-          setSessionId(data.session_id || "");
+        if (!activeSid) {
+          setSessionIdSync(data.session_id || "");
         }
         
         const maxScore = data.hasil && data.hasil.length > 0 ? Math.max(...data.hasil.map((h: Recommendation) => h.skor)) : 0;
@@ -692,7 +704,7 @@ export default function Home() {
     setFeedbackSent(false);
     setIsLowConfidence(false);
     setItemFeedbacks({});
-    setSessionId("");
+    setSessionIdSync("");
     clearCompare();
     // Reset beta testing states
     setOnboardingStep(0);

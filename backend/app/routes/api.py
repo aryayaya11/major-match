@@ -278,24 +278,57 @@ def recommend():
     if not sid:
         sid = str(uuid.uuid4())
 
-    # Auto-save session details to the database
+    # Auto-save session details to the database (UPSERT pattern)
     try:
         user_agent = sanitize_text(request.headers.get('User-Agent', ''), max_length=500)
 
-        record = FeedbackSession(
-            session_id=sid,
-            nama=nama,
-            liked_tags=', '.join(liked_tags),
-            disliked_tags=', '.join(disliked_tags),
-            swipe_history=json.dumps(history),
-            hasil_1=hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
-            hasil_2=hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
-            hasil_3=hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
-            user_agent=user_agent,
-        )
-        db.session.add(record)
+        # UPSERT: cek apakah session sudah ada (mencegah UniqueViolation saat retry)
+        record = FeedbackSession.query.filter_by(session_id=sid).first()
+        if record:
+            # Update record yang sudah ada
+            record.nama = nama
+            record.liked_tags = ', '.join(liked_tags)
+            record.disliked_tags = ', '.join(disliked_tags)
+            record.swipe_history = json.dumps(history)
+            record.hasil_1 = hasil[0].get('jurusan', '') if len(hasil) > 0 else ''
+            record.hasil_2 = hasil[1].get('jurusan', '') if len(hasil) > 1 else ''
+            record.hasil_3 = hasil[2].get('jurusan', '') if len(hasil) > 2 else ''
+            # Update user_agent hanya jika kolom ada (graceful)
+            try:
+                record.user_agent = user_agent
+            except Exception:
+                pass
+        else:
+            # Insert baru
+            try:
+                record = FeedbackSession(
+                    session_id=sid,
+                    nama=nama,
+                    liked_tags=', '.join(liked_tags),
+                    disliked_tags=', '.join(disliked_tags),
+                    swipe_history=json.dumps(history),
+                    hasil_1=hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
+                    hasil_2=hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
+                    hasil_3=hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
+                    user_agent=user_agent,
+                )
+            except TypeError:
+                # Fallback jika kolom user_agent belum dimigrasikan di DB
+                record = FeedbackSession(
+                    session_id=sid,
+                    nama=nama,
+                    liked_tags=', '.join(liked_tags),
+                    disliked_tags=', '.join(disliked_tags),
+                    swipe_history=json.dumps(history),
+                    hasil_1=hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
+                    hasil_2=hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
+                    hasil_3=hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
+                )
+            db.session.add(record)
 
         # Beta Testing: Auto-save ke RecommendationResult
+        # Hapus data lama terlebih dahulu agar tidak duplikat saat retry
+        RecommendationResult.query.filter_by(session_id=sid).delete()
         for i, h in enumerate(hasil[:3]):
             rec_result = RecommendationResult(
                 session_id=sid,
@@ -307,9 +340,10 @@ def recommend():
             db.session.add(rec_result)
 
         db.session.commit()
+        logger.info(f"Session {sid} berhasil disimpan ke database.")
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Database error auto-saving feedback session in recommend: {e}")
+        logger.error(f"Database error auto-saving feedback session in recommend: {e}", exc_info=True)
 
     return jsonify({'nama': nama, 'hasil': hasil, 'session_id': sid, 'status': 'ok'})
 
@@ -367,7 +401,7 @@ def item_feedback():
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Database error in item_feedback: {e}")
+        logger.error(f"Database error in item_feedback: {e}", exc_info=True)
         return error_response('Failed to save feedback')
 
     return jsonify({'message': 'Feedback berhasil disimpan'})
@@ -419,7 +453,7 @@ def feedback():
             db.session.commit()
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Database error in feedback: {e}")
+        logger.error(f"Database error in feedback: {e}", exc_info=True)
         return error_response('Failed to save feedback')
 
     return jsonify({'message': 'Feedback tersimpan'})
@@ -748,7 +782,7 @@ def save_user_profile():
         return jsonify({'message': 'Profil berhasil disimpan', 'session_id': data['session_id']})
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Database error in save_user_profile: {e}")
+        logger.error(f"Database error in save_user_profile: {e}", exc_info=True)
         return error_response('Gagal menyimpan profil')
 
 
@@ -798,7 +832,7 @@ def save_question_response():
             return jsonify({'message': f'{saved_count} jawaban berhasil disimpan'})
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Database error in save_question_response (batch): {e}")
+            logger.error(f"Database error in save_question_response (batch): {e}", exc_info=True)
             return error_response('Gagal menyimpan jawaban')
     else:
         # Single mode
@@ -821,7 +855,7 @@ def save_question_response():
             return jsonify({'message': 'Jawaban berhasil disimpan'})
         except Exception as e:
             db.session.rollback()
-            logger.error(f"Database error in save_question_response: {e}")
+            logger.error(f"Database error in save_question_response: {e}", exc_info=True)
             return error_response('Gagal menyimpan jawaban')
 
 
@@ -868,7 +902,7 @@ def save_recommendation_feedback():
         return jsonify({'message': 'Feedback rekomendasi berhasil disimpan'})
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Database error in save_recommendation_feedback: {e}")
+        logger.error(f"Database error in save_recommendation_feedback: {e}", exc_info=True)
         return error_response('Gagal menyimpan feedback rekomendasi')
 
 
@@ -916,7 +950,7 @@ def save_session_evaluation():
         return jsonify({'message': 'Evaluasi berhasil disimpan'})
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Database error in save_session_evaluation: {e}")
+        logger.error(f"Database error in save_session_evaluation: {e}", exc_info=True)
         return error_response('Gagal menyimpan evaluasi')
 
 
