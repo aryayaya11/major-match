@@ -15,12 +15,6 @@ class FeedbackSession(db.Model):
     id         = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(64), db.ForeignKey('user_profiles.session_id', ondelete='CASCADE'), unique=True, nullable=False)
     nama       = db.Column(db.String(100), nullable=False)
-    liked_tags = db.Column(db.Text)
-    disliked_tags = db.Column(db.Text)
-    swipe_history = db.Column(db.Text)  # JSON string of swipe history
-    hasil_1    = db.Column(db.String(200))
-    hasil_2    = db.Column(db.String(200))
-    hasil_3    = db.Column(db.String(200))
     rating     = db.Column(db.Integer)
     komentar   = db.Column(db.Text)
     web_rating = db.Column(db.Integer)
@@ -37,20 +31,10 @@ class FeedbackSession(db.Model):
         return f'<FeedbackSession {self.session_id}>'
 
     def to_dict(self):
-        swipes = []
-        if self.swipe_history:
-            try:
-                swipes = json.loads(self.swipe_history)
-            except (json.JSONDecodeError, TypeError):
-                swipes = []
         return {
             'id':         self.id,
             'session_id': self.session_id,
             'nama':       self.nama,
-            'liked_tags': self.liked_tags,
-            'disliked_tags': self.disliked_tags,
-            'swipe_history': swipes,
-            'hasil':      [self.hasil_1, self.hasil_2, self.hasil_3],
             'rating':     self.rating,
             'komentar':   self.komentar,
             'web_rating':   self.web_rating,

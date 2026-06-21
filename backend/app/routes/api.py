@@ -287,12 +287,6 @@ def recommend():
         if record:
             # Update record yang sudah ada
             record.nama = nama
-            record.liked_tags = ', '.join(liked_tags)
-            record.disliked_tags = ', '.join(disliked_tags)
-            record.swipe_history = json.dumps(history)
-            record.hasil_1 = hasil[0].get('jurusan', '') if len(hasil) > 0 else ''
-            record.hasil_2 = hasil[1].get('jurusan', '') if len(hasil) > 1 else ''
-            record.hasil_3 = hasil[2].get('jurusan', '') if len(hasil) > 2 else ''
             # Update user_agent hanya jika kolom ada (graceful)
             try:
                 record.user_agent = user_agent
@@ -304,12 +298,6 @@ def recommend():
                 record = FeedbackSession(
                     session_id=sid,
                     nama=nama,
-                    liked_tags=', '.join(liked_tags),
-                    disliked_tags=', '.join(disliked_tags),
-                    swipe_history=json.dumps(history),
-                    hasil_1=hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
-                    hasil_2=hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
-                    hasil_3=hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
                     user_agent=user_agent,
                 )
             except TypeError:
@@ -317,12 +305,6 @@ def recommend():
                 record = FeedbackSession(
                     session_id=sid,
                     nama=nama,
-                    liked_tags=', '.join(liked_tags),
-                    disliked_tags=', '.join(disliked_tags),
-                    swipe_history=json.dumps(history),
-                    hasil_1=hasil[0].get('jurusan', '') if len(hasil) > 0 else '',
-                    hasil_2=hasil[1].get('jurusan', '') if len(hasil) > 1 else '',
-                    hasil_3=hasil[2].get('jurusan', '') if len(hasil) > 2 else '',
                 )
             db.session.add(record)
 
@@ -381,10 +363,6 @@ def feedback():
             record = FeedbackSession(
                 session_id=session_id,
                 nama='anonymous',
-                liked_tags='',
-                hasil_1='',
-                hasil_2='',
-                hasil_3='',
                 rating=rating,
                 komentar=komentar,
                 web_rating=web_rating,

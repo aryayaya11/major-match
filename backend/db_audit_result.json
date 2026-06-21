@@ -1,38 +1,4 @@
 {
-    "item_feedback": {
-        "columns": [
-            {
-                "name": "id",
-                "type": "INTEGER",
-                "nullable": false
-            },
-            {
-                "name": "session_id",
-                "type": "VARCHAR(64)",
-                "nullable": false
-            },
-            {
-                "name": "rekomendasi_jurusan",
-                "type": "VARCHAR(200)",
-                "nullable": false
-            },
-            {
-                "name": "feedback",
-                "type": "VARCHAR(10)",
-                "nullable": false
-            },
-            {
-                "name": "timestamp",
-                "type": "TIMESTAMP",
-                "nullable": true
-            }
-        ],
-        "foreign_keys": [],
-        "primary_keys": [
-            "id"
-        ],
-        "row_count": 3
-    },
     "alembic_version": {
         "columns": [
             {
@@ -125,11 +91,92 @@
                 "nullable": true
             }
         ],
-        "foreign_keys": [],
+        "foreign_keys": [
+            {
+                "name": "feedback_sessions_session_id_fkey",
+                "constrained_columns": [
+                    "session_id"
+                ],
+                "referred_schema": null,
+                "referred_table": "user_profiles",
+                "referred_columns": [
+                    "session_id"
+                ],
+                "options": {
+                    "ondelete": "CASCADE"
+                },
+                "comment": null
+            }
+        ],
         "primary_keys": [
             "id"
         ],
-        "row_count": 9
+        "row_count": 1
+    },
+    "recommendation_feedback": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "jurusan",
+                "type": "VARCHAR(200)",
+                "nullable": false
+            },
+            {
+                "name": "rank",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "rating_tertarik",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "pertimbangkan",
+                "type": "BOOLEAN",
+                "nullable": true
+            },
+            {
+                "name": "sudah_tahu",
+                "type": "BOOLEAN",
+                "nullable": true
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [
+            {
+                "name": "recommendation_feedback_session_id_fkey",
+                "constrained_columns": [
+                    "session_id"
+                ],
+                "referred_schema": null,
+                "referred_table": "user_profiles",
+                "referred_columns": [
+                    "session_id"
+                ],
+                "options": {
+                    "ondelete": "CASCADE"
+                },
+                "comment": null
+            }
+        ],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 24
     },
     "user_profiles": {
         "columns": [
@@ -248,11 +295,27 @@
                 "nullable": true
             }
         ],
-        "foreign_keys": [],
+        "foreign_keys": [
+            {
+                "name": "question_responses_session_id_fkey",
+                "constrained_columns": [
+                    "session_id"
+                ],
+                "referred_schema": null,
+                "referred_table": "user_profiles",
+                "referred_columns": [
+                    "session_id"
+                ],
+                "options": {
+                    "ondelete": "CASCADE"
+                },
+                "comment": null
+            }
+        ],
         "primary_keys": [
             "id"
         ],
-        "row_count": 425
+        "row_count": 338
     },
     "recommendation_results": {
         "columns": [
@@ -292,60 +355,27 @@
                 "nullable": true
             }
         ],
-        "foreign_keys": [],
-        "primary_keys": [
-            "id"
-        ],
-        "row_count": 9
-    },
-    "recommendation_feedback": {
-        "columns": [
+        "foreign_keys": [
             {
-                "name": "id",
-                "type": "INTEGER",
-                "nullable": false
-            },
-            {
-                "name": "session_id",
-                "type": "VARCHAR(64)",
-                "nullable": false
-            },
-            {
-                "name": "jurusan",
-                "type": "VARCHAR(200)",
-                "nullable": false
-            },
-            {
-                "name": "rank",
-                "type": "INTEGER",
-                "nullable": true
-            },
-            {
-                "name": "rating_tertarik",
-                "type": "INTEGER",
-                "nullable": true
-            },
-            {
-                "name": "pertimbangkan",
-                "type": "BOOLEAN",
-                "nullable": true
-            },
-            {
-                "name": "sudah_tahu",
-                "type": "BOOLEAN",
-                "nullable": true
-            },
-            {
-                "name": "timestamp",
-                "type": "TIMESTAMP",
-                "nullable": true
+                "name": "recommendation_results_session_id_fkey",
+                "constrained_columns": [
+                    "session_id"
+                ],
+                "referred_schema": null,
+                "referred_table": "user_profiles",
+                "referred_columns": [
+                    "session_id"
+                ],
+                "options": {
+                    "ondelete": "CASCADE"
+                },
+                "comment": null
             }
         ],
-        "foreign_keys": [],
         "primary_keys": [
             "id"
         ],
-        "row_count": 33
+        "row_count": 3
     },
     "session_evaluations": {
         "columns": [
@@ -400,10 +430,26 @@
                 "nullable": true
             }
         ],
-        "foreign_keys": [],
+        "foreign_keys": [
+            {
+                "name": "session_evaluations_session_id_fkey",
+                "constrained_columns": [
+                    "session_id"
+                ],
+                "referred_schema": null,
+                "referred_table": "user_profiles",
+                "referred_columns": [
+                    "session_id"
+                ],
+                "options": {
+                    "ondelete": "CASCADE"
+                },
+                "comment": null
+            }
+        ],
         "primary_keys": [
             "id"
         ],
-        "row_count": 11
+        "row_count": 8
     }
 }
