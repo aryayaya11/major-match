@@ -87,4 +87,9 @@ def create_app(config_class=Config):
     from app.routes.api import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
+    # Simple root route for health check
+    @app.route("/")
+    def home():
+        return {"status": "ok", "message": "Major & Match API is running"}
+
     return app
