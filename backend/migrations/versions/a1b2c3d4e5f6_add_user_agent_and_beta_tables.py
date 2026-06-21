@@ -1,7 +1,7 @@
 """add user_agent to feedback_sessions and beta testing tables
 
 Revision ID: a1b2c3d4e5f6
-Revises: 622e2baf89ec
+Revises: 10e40813414d
 Create Date: 2026-06-21 23:05:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'a1b2c3d4e5f6'
-down_revision = '622e2baf89ec'
+down_revision = '10e40813414d'
 branch_labels = None
 depends_on = None
 
