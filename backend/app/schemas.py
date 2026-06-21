@@ -6,13 +6,6 @@ from marshmallow import Schema, fields, validate
 
 
 
-class FeedbackSchema(Schema):
-    session_id = fields.String(required=True, validate=validate.Length(min=1, max=64))
-    rating = fields.Integer(required=True, validate=validate.Range(min=1, max=5))
-    komentar = fields.String(load_default='', validate=validate.Length(max=2000))
-    web_rating = fields.Integer(required=True, validate=validate.Range(min=1, max=5))
-    web_komentar = fields.String(load_default='', validate=validate.Length(max=2000))
-
 class NextCardSchema(Schema):
     history = fields.List(fields.Dict(), load_default=[])
     liked_tags = fields.List(fields.String(), load_default=[])
@@ -40,6 +33,8 @@ class UserProfileSchema(Schema):
     session_id = fields.String(required=True, validate=validate.Length(min=1, max=64))
 
     # Demografi (wajib)
+    nama = fields.String(allow_none=True)
+    user_agent = fields.String(allow_none=True)
     gender = fields.String(required=True, validate=validate.OneOf(['L', 'P', 'Lainnya']))
     kelas = fields.String(required=True, validate=validate.OneOf(['10', '11', '12', 'Alumni']))
     jurusan_sma = fields.String(required=True, validate=validate.OneOf(['IPA', 'IPS', 'Bahasa', 'Lainnya']))

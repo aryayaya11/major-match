@@ -6,43 +6,6 @@ db = SQLAlchemy()
 
 
 # ══════════════════════════════════════════════════════════════
-# EXISTING MODELS (backward compatible)
-# ══════════════════════════════════════════════════════════════
-
-class FeedbackSession(db.Model):
-    __tablename__ = 'feedback_sessions'
-
-    id         = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(64), db.ForeignKey('user_profiles.session_id', ondelete='CASCADE'), unique=True, nullable=False)
-    nama       = db.Column(db.String(100), nullable=False)
-    rating     = db.Column(db.Integer)
-    komentar   = db.Column(db.Text)
-    web_rating = db.Column(db.Integer)
-    web_komentar = db.Column(db.Text)
-    user_agent = db.Column(db.String(500))  # For ML readiness — device/browser tracking
-    timestamp  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    # Indexes for common queries
-    __table_args__ = (
-        db.Index('ix_feedback_sessions_timestamp', 'timestamp'),
-    )
-
-    def __repr__(self):
-        return f'<FeedbackSession {self.session_id}>'
-
-    def to_dict(self):
-        return {
-            'id':         self.id,
-            'session_id': self.session_id,
-            'nama':       self.nama,
-            'rating':     self.rating,
-            'komentar':   self.komentar,
-            'web_rating':   self.web_rating,
-            'web_komentar': self.web_komentar,
-            'timestamp':  self.timestamp.isoformat() if self.timestamp else None
-        }
-
-# ══════════════════════════════════════════════════════════════
 # BETA TESTING VALIDATION MODELS
 # ══════════════════════════════════════════════════════════════
 
@@ -52,6 +15,8 @@ class UserProfile(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    nama = db.Column(db.String(100), nullable=True)             # Identitas Tester
+    user_agent = db.Column(db.String(500), nullable=True)       # Device/Browser Tracking
 
     # Demografi
     gender = db.Column(db.String(10))           # L, P, Lainnya
@@ -82,6 +47,8 @@ class UserProfile(db.Model):
         return {
             'id': self.id,
             'session_id': self.session_id,
+            'nama': self.nama,
+            'user_agent': self.user_agent,
             'gender': self.gender,
             'kelas': self.kelas,
             'jurusan_sma': self.jurusan_sma,

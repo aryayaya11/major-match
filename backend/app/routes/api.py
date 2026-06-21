@@ -8,15 +8,14 @@ from marshmallow import ValidationError
 from sqlalchemy import func
 
 from app.models import (
-    db, FeedbackSession,
-    UserProfile, QuestionResponse, RecommendationResult,
+    db, UserProfile, QuestionResponse, RecommendationResult,
     RecommendationFeedback, SessionEvaluation
 )
 from app.services.ml_service import ml_service
 from app import cache, limiter
 from app.schemas import (
     NextCardSchema, RecommendSchema,
-    FeedbackSchema, ExploreSchema,
+    ExploreSchema,
     UserProfileSchema, QuestionResponseSchema, QuestionResponseBatchSchema,
     RecommendationFeedbackSchema, SessionEvaluationSchema
 )
@@ -278,35 +277,16 @@ def recommend():
     if not sid:
         sid = str(uuid.uuid4())
 
-    # Auto-save session details to the database (UPSERT pattern)
+    # Auto-save session details to the database
     try:
         user_agent = sanitize_text(request.headers.get('User-Agent', ''), max_length=500)
 
-        # UPSERT: cek apakah session sudah ada (mencegah UniqueViolation saat retry)
-        record = FeedbackSession.query.filter_by(session_id=sid).first()
-        if record:
-            # Update record yang sudah ada
-            record.nama = nama
-            # Update user_agent hanya jika kolom ada (graceful)
-            try:
-                record.user_agent = user_agent
-            except Exception:
-                pass
-        else:
-            # Insert baru
-            try:
-                record = FeedbackSession(
-                    session_id=sid,
-                    nama=nama,
-                    user_agent=user_agent,
-                )
-            except TypeError:
-                # Fallback jika kolom user_agent belum dimigrasikan di DB
-                record = FeedbackSession(
-                    session_id=sid,
-                    nama=nama,
-                )
-            db.session.add(record)
+        # Update UserProfile with nama and user_agent if provided
+        profile = UserProfile.query.filter_by(session_id=sid).first()
+        if profile:
+            profile.nama = nama
+            profile.user_agent = user_agent
+            db.session.add(profile)
 
         # Beta Testing: Auto-save ke RecommendationResult
         # Hapus data lama terlebih dahulu agar tidak duplikat saat retry
@@ -328,54 +308,6 @@ def recommend():
         logger.error(f"Database error auto-saving feedback session in recommend: {e}", exc_info=True)
 
     return jsonify({'nama': nama, 'hasil': hasil, 'session_id': sid, 'status': 'ok'})
-
-@api_bp.route('/feedback', methods=['POST'])
-@limiter.limit("30 per hour")
-def feedback():
-    """
-    Menyimpan rating & komentar dari session user.
-    ---
-    tags:
-      - Feedback
-    """
-    try:
-        data = FeedbackSchema().load(request.get_json() or {})
-    except ValidationError as err:
-        return jsonify(err.messages), 400
-
-    session_id = data.get('session_id')
-    rating = data.get('rating')
-    komentar = sanitize_text(data.get('komentar', ''), max_length=2000)
-    web_rating = data.get('web_rating')
-    web_komentar = sanitize_text(data.get('web_komentar', ''), max_length=2000)
-
-    try:
-        # Find the record that was created during /recommend
-        record = FeedbackSession.query.filter_by(session_id=session_id).first()
-        if record:
-            record.rating = rating
-            record.komentar = komentar
-            record.web_rating = web_rating
-            record.web_komentar = web_komentar
-            db.session.commit()
-        else:
-            # Record not found — create minimal record (do NOT use Flask session fallback)
-            record = FeedbackSession(
-                session_id=session_id,
-                nama='anonymous',
-                rating=rating,
-                komentar=komentar,
-                web_rating=web_rating,
-                web_komentar=web_komentar,
-            )
-            db.session.add(record)
-            db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Database error in feedback: {e}", exc_info=True)
-        return error_response('Failed to save feedback')
-
-    return jsonify({'message': 'Feedback tersimpan'})
 
 @api_bp.route('/debug-db', methods=['GET'])
 @require_admin_key
@@ -453,37 +385,38 @@ def stats():
     """
 
     try:
-        total = FeedbackSession.query.count()
+        total = UserProfile.query.count()
 
-        # Use SQL aggregation instead of loading all records
+        # Use SessionEvaluation for ratings
         rata_rating = 0
         rata_rating_web = 0
-        if total > 0:
-            avg_rating_result = db.session.query(
-                func.avg(FeedbackSession.rating)
-            ).filter(FeedbackSession.rating.isnot(None)).scalar()
-            if avg_rating_result:
-                rata_rating = round(float(avg_rating_result), 2)
+        
+        avg_kesesuaian = db.session.query(func.avg(SessionEvaluation.rating_kesesuaian)).scalar()
+        if avg_kesesuaian:
+            rata_rating = round(float(avg_kesesuaian), 2)
+            
+        avg_kepuasan = db.session.query(func.avg(SessionEvaluation.rating_kepuasan)).scalar()
+        if avg_kepuasan:
+            rata_rating_web = round(float(avg_kepuasan), 2)
 
-            avg_web_result = db.session.query(
-                func.avg(FeedbackSession.web_rating)
-            ).filter(FeedbackSession.web_rating.isnot(None)).scalar()
-            if avg_web_result:
-                rata_rating_web = round(float(avg_web_result), 2)
-
-        # Pseudonymize user names in detail — show only first char + asterisks
-        raw_detail = FeedbackSession.query.order_by(
-            FeedbackSession.timestamp.desc()
-        ).limit(10).all()
-
+        # Get recent sessions joining UserProfile and SessionEvaluation
+        raw_profiles = UserProfile.query.order_by(UserProfile.timestamp.desc()).limit(10).all()
         detail = []
-        for r in raw_detail:
-            d = r.to_dict()
-            # Pseudonymize nama
-            name = d.get('nama', '')
-            if name and len(name) > 1:
-                d['nama'] = name[0] + '*' * (len(name) - 1)
-            detail.append(d)
+        for p in raw_profiles:
+            eval_record = SessionEvaluation.query.filter_by(session_id=p.session_id).first()
+            name = p.nama or 'Tester'
+            if len(name) > 1:
+                name = name[0] + '*' * (len(name) - 1)
+                
+            detail.append({
+                'session_id': p.session_id,
+                'nama': name,
+                'rating': eval_record.rating_kesesuaian if eval_record else None,
+                'komentar': eval_record.komentar if eval_record else None,
+                'web_rating': eval_record.rating_kepuasan if eval_record else None,
+                'web_komentar': None,
+                'timestamp': p.timestamp.isoformat() if p.timestamp else None
+            })
 
 
 
