@@ -5,7 +5,7 @@ import random
 import logging
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-from app.models import ItemFeedback, db
+from app.models import db
 
 logger = logging.getLogger(__name__)
 
@@ -424,24 +424,9 @@ class MLService:
             likes_count, dislikes_count = cached_fb
         else:
             try:
-                res_likes = db.session.query(
-                    ItemFeedback.rekomendasi_jurusan,
-                    db.func.count(ItemFeedback.id)
-                ).filter(ItemFeedback.feedback == 'like').group_by(ItemFeedback.rekomendasi_jurusan).all()
-                for row in res_likes:
-                    likes_count[row[0]] = row[1]
-                    
-                res_dis = db.session.query(
-                    ItemFeedback.rekomendasi_jurusan,
-                    db.func.count(ItemFeedback.id)
-                ).filter(ItemFeedback.feedback == 'dislike').group_by(ItemFeedback.rekomendasi_jurusan).all()
-                for row in res_dis:
-                    dislikes_count[row[0]] = row[1]
-                
-                try:
-                    cache.set("popularity_feedback_counts", (likes_count, dislikes_count), timeout=60)
-                except Exception as e:
-                    logger.warning(f"Cache write error for popularity counts (non-fatal): {e}")
+                # Bayesian feedback boost was previously driven by ItemFeedback.
+                # Now disabled as ItemFeedback has been dropped.
+                pass
             except Exception as e:
                 logger.error(f"Error fetching feedback counts from DB: {e}")
 

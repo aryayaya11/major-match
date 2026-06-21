@@ -8,14 +8,14 @@ from marshmallow import ValidationError
 from sqlalchemy import func
 
 from app.models import (
-    db, FeedbackSession, ItemFeedback,
+    db, FeedbackSession,
     UserProfile, QuestionResponse, RecommendationResult,
     RecommendationFeedback, SessionEvaluation
 )
 from app.services.ml_service import ml_service
 from app import cache, limiter
 from app.schemas import (
-    NextCardSchema, RecommendSchema, ItemFeedbackSchema,
+    NextCardSchema, RecommendSchema,
     FeedbackSchema, ExploreSchema,
     UserProfileSchema, QuestionResponseSchema, QuestionResponseBatchSchema,
     RecommendationFeedbackSchema, SessionEvaluationSchema
@@ -347,65 +347,6 @@ def recommend():
 
     return jsonify({'nama': nama, 'hasil': hasil, 'session_id': sid, 'status': 'ok'})
 
-@api_bp.route('/item-feedback', methods=['POST'])
-@limiter.limit("120 per hour")
-def item_feedback():
-    """
-    Menyimpan feedback like/dislike untuk sebuah jurusan.
-    ---
-    tags:
-      - Feedback
-    parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            session_id:
-              type: string
-            rekomendasi_jurusan:
-              type: string
-            feedback:
-              type: string
-              enum: [like, dislike]
-    responses:
-      200:
-        description: Feedback berhasil disimpan
-    """
-    try:
-        data = ItemFeedbackSchema().load(request.get_json() or {})
-    except ValidationError as err:
-        return jsonify(err.messages), 400
-
-    session_id = data.get('session_id')
-    rekomendasi_jurusan = data.get('rekomendasi_jurusan')
-    feedback = data.get('feedback')
-
-    try:
-        existing = ItemFeedback.query.filter_by(
-            session_id=session_id,
-            rekomendasi_jurusan=rekomendasi_jurusan
-        ).first()
-
-        if existing:
-            existing.feedback = feedback
-        else:
-            new_feedback = ItemFeedback(
-                session_id=session_id,
-                rekomendasi_jurusan=rekomendasi_jurusan,
-                feedback=feedback
-            )
-            db.session.add(new_feedback)
-
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Database error in item_feedback: {e}", exc_info=True)
-        return error_response('Failed to save feedback')
-
-    return jsonify({'message': 'Feedback berhasil disimpan'})
-
 @api_bp.route('/feedback', methods=['POST'])
 @limiter.limit("30 per hour")
 def feedback():
@@ -566,10 +507,7 @@ def stats():
                 d['nama'] = name[0] + '*' * (len(name) - 1)
             detail.append(d)
 
-        item_likes = ItemFeedback.query.filter_by(feedback='like').count()
-        item_dislikes = ItemFeedback.query.filter_by(feedback='dislike').count()
-        total_item = item_likes + item_dislikes
-        like_ratio = round((item_likes / total_item * 100), 2) if total_item > 0 else 0
+
 
         # Beta testing stats (use aggregation)
         beta_stats = {}
@@ -611,12 +549,6 @@ def stats():
             'total': total,
             'rata_rating': rata_rating,
             'rata_rating_web': rata_rating_web,
-            'detail': detail,
-            'item_feedback': {
-                'total_likes': item_likes,
-                'total_dislikes': item_dislikes,
-                'like_ratio_percent': like_ratio
-            },
             'beta_testing': beta_stats
         })
     except Exception as e:

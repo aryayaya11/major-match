@@ -4,10 +4,7 @@ from marshmallow import Schema, fields, validate
 # EXISTING SCHEMAS (backward compatible)
 # ══════════════════════════════════════════════════════════════
 
-class ItemFeedbackSchema(Schema):
-    session_id = fields.String(required=True, validate=validate.Length(min=1, max=64))
-    rekomendasi_jurusan = fields.String(required=True, validate=validate.Length(min=1, max=200))
-    feedback = fields.String(required=True, validate=validate.OneOf(['like', 'dislike']))
+
 
 class FeedbackSchema(Schema):
     session_id = fields.String(required=True, validate=validate.Length(min=1, max=64))

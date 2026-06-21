@@ -190,7 +190,6 @@ export default function Home() {
     sessionIdRef.current = sid;
     setSessionId(sid);
   };
-  const [itemFeedbacks, setItemFeedbacks] = useState<Record<string, string>>({});
   const [swipeStatus, setSwipeStatus] = useState<string>("ok");
   const [extendModalOpen, setExtendModalOpen] = useState(false);
   const [transitionModalOpen, setTransitionModalOpen] = useState(false);
@@ -548,20 +547,6 @@ export default function Home() {
     }
   };
 
-  const sendItemFeedback = async (jurusan: string, fb: "like" | "dislike") => {
-    if (!sessionId) return;
-    try {
-      await fetch("/api/item-feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, rekomendasi_jurusan: jurusan, feedback: fb }),
-      });
-      setItemFeedbacks(prev => ({...prev, [jurusan]: fb}));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const handleSwipe = async (liked: boolean) => {
     if (!currentCard) return;
 
@@ -703,7 +688,6 @@ export default function Home() {
     setComment("");
     setFeedbackSent(false);
     setIsLowConfidence(false);
-    setItemFeedbacks({});
     setSessionIdSync("");
     clearCompare();
     // Reset beta testing states

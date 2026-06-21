@@ -13,7 +13,7 @@ class FeedbackSession(db.Model):
     __tablename__ = 'feedback_sessions'
 
     id         = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(64), unique=True, nullable=False)
+    session_id = db.Column(db.String(64), db.ForeignKey('user_profiles.session_id', ondelete='CASCADE'), unique=True, nullable=False)
     nama       = db.Column(db.String(100), nullable=False)
     liked_tags = db.Column(db.Text)
     disliked_tags = db.Column(db.Text)
@@ -56,32 +56,6 @@ class FeedbackSession(db.Model):
             'web_rating':   self.web_rating,
             'web_komentar': self.web_komentar,
             'timestamp':  self.timestamp.isoformat() if self.timestamp else None
-        }
-
-class ItemFeedback(db.Model):
-    __tablename__ = 'item_feedback'
-
-    id = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(64), nullable=False, index=True)
-    rekomendasi_jurusan = db.Column(db.String(200), nullable=False)
-    feedback = db.Column(db.String(10), nullable=False, index=True)  # 'like' or 'dislike'
-    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    # Composite index for common lookup pattern
-    __table_args__ = (
-        db.Index('ix_item_feedback_session_jurusan', 'session_id', 'rekomendasi_jurusan'),
-    )
-
-    def __repr__(self):
-        return f'<ItemFeedback {self.session_id}:{self.rekomendasi_jurusan}>'
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'session_id': self.session_id,
-            'rekomendasi_jurusan': self.rekomendasi_jurusan,
-            'feedback': self.feedback,
-            'timestamp': self.timestamp.isoformat() if self.timestamp else None
         }
 
 # ══════════════════════════════════════════════════════════════
@@ -141,7 +115,7 @@ class QuestionResponse(db.Model):
     __tablename__ = 'question_responses'
 
     id = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(64), nullable=False, index=True)
+    session_id = db.Column(db.String(64), db.ForeignKey('user_profiles.session_id', ondelete='CASCADE'), nullable=False, index=True)
     question_id = db.Column(db.String(20), nullable=False, index=True)
     response = db.Column(db.String(10), nullable=False)  # 'like' or 'skip'
     response_time_ms = db.Column(db.Integer)              # Waktu jawab dalam milidetik
@@ -176,7 +150,7 @@ class RecommendationResult(db.Model):
     __tablename__ = 'recommendation_results'
 
     id = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(64), nullable=False, index=True)
+    session_id = db.Column(db.String(64), db.ForeignKey('user_profiles.session_id', ondelete='CASCADE'), nullable=False, index=True)
     rank = db.Column(db.Integer, nullable=False)          # 1, 2, 3
     jurusan = db.Column(db.String(200), nullable=False)
     kategori = db.Column(db.String(100))
@@ -209,7 +183,7 @@ class RecommendationFeedback(db.Model):
     __tablename__ = 'recommendation_feedback'
 
     id = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(64), nullable=False, index=True)
+    session_id = db.Column(db.String(64), db.ForeignKey('user_profiles.session_id', ondelete='CASCADE'), nullable=False, index=True)
     jurusan = db.Column(db.String(200), nullable=False)
     rank = db.Column(db.Integer)
 
@@ -246,7 +220,7 @@ class SessionEvaluation(db.Model):
     __tablename__ = 'session_evaluations'
 
     id = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    session_id = db.Column(db.String(64), db.ForeignKey('user_profiles.session_id', ondelete='CASCADE'), unique=True, nullable=False, index=True)
 
     # Evaluasi keseluruhan
     rating_kesesuaian = db.Column(db.Integer)      # 1-5

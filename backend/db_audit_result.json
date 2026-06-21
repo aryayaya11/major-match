@@ -1,0 +1,409 @@
+{
+    "item_feedback": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "rekomendasi_jurusan",
+                "type": "VARCHAR(200)",
+                "nullable": false
+            },
+            {
+                "name": "feedback",
+                "type": "VARCHAR(10)",
+                "nullable": false
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 3
+    },
+    "alembic_version": {
+        "columns": [
+            {
+                "name": "version_num",
+                "type": "VARCHAR(32)",
+                "nullable": false
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "version_num"
+        ],
+        "row_count": 1
+    },
+    "feedback_sessions": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "nama",
+                "type": "VARCHAR(100)",
+                "nullable": false
+            },
+            {
+                "name": "liked_tags",
+                "type": "TEXT",
+                "nullable": true
+            },
+            {
+                "name": "hasil_1",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "hasil_2",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "hasil_3",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "rating",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "komentar",
+                "type": "TEXT",
+                "nullable": true
+            },
+            {
+                "name": "web_rating",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "web_komentar",
+                "type": "TEXT",
+                "nullable": true
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            },
+            {
+                "name": "disliked_tags",
+                "type": "TEXT",
+                "nullable": true
+            },
+            {
+                "name": "swipe_history",
+                "type": "TEXT",
+                "nullable": true
+            },
+            {
+                "name": "user_agent",
+                "type": "VARCHAR(500)",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 9
+    },
+    "user_profiles": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "gender",
+                "type": "VARCHAR(10)",
+                "nullable": true
+            },
+            {
+                "name": "kelas",
+                "type": "VARCHAR(10)",
+                "nullable": true
+            },
+            {
+                "name": "jurusan_sma",
+                "type": "VARCHAR(20)",
+                "nullable": true
+            },
+            {
+                "name": "jurusan_impian",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "jurusan_diminati_1",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "jurusan_diminati_2",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "jurusan_diminati_3",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "tingkat_keyakinan",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "sudah_riset",
+                "type": "BOOLEAN",
+                "nullable": true
+            },
+            {
+                "name": "sumber_info",
+                "type": "TEXT",
+                "nullable": true
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 13
+    },
+    "question_responses": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "question_id",
+                "type": "VARCHAR(20)",
+                "nullable": false
+            },
+            {
+                "name": "response",
+                "type": "VARCHAR(10)",
+                "nullable": false
+            },
+            {
+                "name": "response_time_ms",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "question_order",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "phase",
+                "type": "VARCHAR(20)",
+                "nullable": true
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 425
+    },
+    "recommendation_results": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "rank",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "jurusan",
+                "type": "VARCHAR(200)",
+                "nullable": false
+            },
+            {
+                "name": "kategori",
+                "type": "VARCHAR(100)",
+                "nullable": true
+            },
+            {
+                "name": "confidence_score",
+                "type": "DOUBLE PRECISION",
+                "nullable": true
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 9
+    },
+    "recommendation_feedback": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "jurusan",
+                "type": "VARCHAR(200)",
+                "nullable": false
+            },
+            {
+                "name": "rank",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "rating_tertarik",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "pertimbangkan",
+                "type": "BOOLEAN",
+                "nullable": true
+            },
+            {
+                "name": "sudah_tahu",
+                "type": "BOOLEAN",
+                "nullable": true
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 33
+    },
+    "session_evaluations": {
+        "columns": [
+            {
+                "name": "id",
+                "type": "INTEGER",
+                "nullable": false
+            },
+            {
+                "name": "session_id",
+                "type": "VARCHAR(64)",
+                "nullable": false
+            },
+            {
+                "name": "rating_kesesuaian",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "rating_kepuasan",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "rating_wawasan",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "nps_score",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "jurusan_seharusnya",
+                "type": "VARCHAR(200)",
+                "nullable": true
+            },
+            {
+                "name": "komentar",
+                "type": "TEXT",
+                "nullable": true
+            },
+            {
+                "name": "durasi_total_detik",
+                "type": "INTEGER",
+                "nullable": true
+            },
+            {
+                "name": "timestamp",
+                "type": "TIMESTAMP",
+                "nullable": true
+            }
+        ],
+        "foreign_keys": [],
+        "primary_keys": [
+            "id"
+        ],
+        "row_count": 11
+    }
+}
